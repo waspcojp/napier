@@ -82,18 +82,21 @@ ws.on('open', (e) => {
         method: 'auth',
         message_id: sequence,
         body: {
-            user: 'user',
-            password:  'password'
+            user: 'ogochan',
+            password:  '***'
         }
     })));
     Recv.on('recv', (body) => {
-        //console.log('body', body);
+        console.log('body', body);
         sequence += 1;
         if  ( body.status == 'OK')  {
             session = body.id;
             ws.send(encodeText(0, JSON.stringify({
                 method: 'start',
-                message_id: sequence
+                message_id: sequence,
+                body: {
+                    name: 'vhost1'
+                }
             })));
         }
     })

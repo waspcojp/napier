@@ -2,15 +2,15 @@ const {WebSocketServer} = require('ws');
 const httpProxy = require('http-proxy');
 const new_id = require('../libs/id');
 const TunnelConnection = require('./tunnel-connection');
+const {auth, getProfile} = require('./user');
 const net = require('net');
 const URL = require('url');
 
 const   do_auth = (session, body) => {
     console.log('auth', body.body);
-    let auth;
-    auth = true;
-    if  ( auth )   {
-        session.user = body.body.user;
+    let user = auth(body.body.user, body.body.password);
+    if  ( user )   {
+        session.user = user.name;
         session.tunnel.sendControl({
             status: 'OK',
             message_id: body.message_id,
@@ -22,6 +22,7 @@ const   do_auth = (session, body) => {
             message_id: body.message_id
         });
     }
+    return  (user);
 }
 
 const   searchFreeChannel = (session) => {
@@ -70,6 +71,7 @@ const   openProxy = (session) => {
             port: session.localPort
         }
     });
+
     session.proxy = proxy;
 }
 
@@ -125,7 +127,19 @@ module.exports = class {
         console.log(host, method, url);
         for ( let i = 0 ; i < this.sessionPool.length ; i ++ )   {
             if  (   ( session = this.sessionPool[i] ) &&
-                    ( session.localPort ) ) break;
+                    ( session.localPort ) ) {
+                let profile = session.profile;
+                if  ( ( ( !profile.path ) ||
+                        ( ( profile.path ) &&
+                          ( url.path.match(profile.path) ) ) ) &&
+                      ( ( !profile.host ) ||
+                        ( ( profile.host ) &&
+                          ( profile.host == host ) ) ) )    {
+                    
+                } else {
+                    session = undefined;
+                }
+            }
         }
         return  (session);
     }
@@ -136,6 +150,7 @@ module.exports = class {
         });
         ws.on('connection', (socket) => {
             let {session, index} = this.searchFreeSession();
+            let user;
             session.id = new_id();
             session.tunnel = new TunnelConnection(socket);
             socket.on('message', (message) => {
@@ -146,11 +161,20 @@ module.exports = class {
                     console.log({body});
                     switch  ( body.method ) {
                       case    'auth':
-                        do_auth(session, body);
+                        console.log('auth');
+                        user = do_auth(session, body);
+                        session.user = user;
                         break;
                       case  'start':
+                        console.log('start');
+                        let profile_name;
+                        if  ( body.body )   {
+                            profile_name = body.body.name;
+                        }
+                        let profile = getProfile(user.name, profile_name);
                         let port = this.searchFreePort();
                         session.localPort = port;
+                        session.profile = profile;
                         do_start(session, body);
                         break;
                     }
