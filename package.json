@@ -1,0 +1,16 @@
+{
+  "name": "napier",
+  "version": "0.0.0",
+  "description": "simple web proxy service",
+  "main": "server/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Masami Ogoshi",
+  "license": "AGPL-3.0-or-later",
+  "dependencies": {
+    "http-proxy": "^1.18.1",
+    "node-uuid": "^1.4.8",
+    "ws": "^8.8.0"
+  }
+}
