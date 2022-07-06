@@ -61,7 +61,7 @@ const   openLocal = (session) => {
             session.channels[channel] = undefined;
         })
     });
-    let server = local.listen(session.localPort);
+    session.localServer = local.listen(session.localPort);
 }
 
 const   openProxy = (session) => {
@@ -91,8 +91,17 @@ module.exports = class {
         let port;
         for ( let i = this.port_range[0] ; i <= this.port_range[1] ; i += 1)    {
             if  ( !this.proxyPort[i - this.port_range[0]] )   {
-                port = i;
-                break;
+                this.proxyPort[i] = i;
+                try {
+                    let server = net.createServer();
+                    server.listen(i);
+                    server.close();
+                    port = i;
+                    break;
+                }
+                catch(e)    {
+                    ;
+                }
             }
         }
         console.log('port', port);
@@ -100,6 +109,8 @@ module.exports = class {
     }
     freeSession(index)  {
         console.log('close', index);
+        let session = this.sessionPool[index];
+        this.proxyPort[session.localPort] = undefined;
         this.sessionPool[index] = undefined;
     }
     searchFreeSession() {
@@ -124,7 +135,7 @@ module.exports = class {
         let host = req.headers.host;
         let url = URL.parse(req.url);
         let method = req.method;
-        console.log(host, method, url);
+        //console.log(host, method, url);
         for ( let i = 0 ; i < this.sessionPool.length ; i ++ )   {
             if  (   ( session = this.sessionPool[i] ) &&
                     ( session.localPort ) ) {
@@ -185,7 +196,7 @@ module.exports = class {
                 }
             });
             socket.on('close', () => {
-                session.localPort
+                session.localServer.close();
                 this.freeSession(index);
             });
         })

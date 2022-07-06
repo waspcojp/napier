@@ -16,13 +16,13 @@ const server = createServer((req, res) => {
     //console.log({session});
     if  ( session ) {
         let profile = session.profile;
-        console.log('url', req.url);
+        //console.log('url', req.url);
         let reg = profile.path;
-        console.log('rewrite', reg);
+        //console.log('rewrite', reg);
         if  ( reg ) {
             req.url = req.url.replace(reg, '');
         }
-        console.log('to', req.url);
+        //console.log('to', req.url);
         session.proxy.proxyRequest(req, res);
     } else {
         console.log('no proxy');
