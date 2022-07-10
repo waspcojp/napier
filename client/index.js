@@ -95,7 +95,7 @@ ws.on('open', (e) => {
                 method: 'start',
                 message_id: sequence,
                 body: {
-                    name: 'vhost1'
+                    name: 'real'
                 }
             })));
         }

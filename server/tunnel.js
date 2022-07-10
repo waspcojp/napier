@@ -1,5 +1,4 @@
 const {WebSocketServer} = require('ws');
-const httpProxy = require('http-proxy');
 const new_id = require('../libs/id');
 const TunnelConnection = require('./tunnel-connection');
 const {auth, getProfile} = require('./user');
@@ -64,24 +63,24 @@ const   openLocal = (session) => {
     session.localServer = local.listen(session.localPort);
 }
 
-const   openProxy = (session) => {
-    let proxy = new httpProxy.createProxyServer({
-        target: {
-            host: 'localhost',
-            port: session.localPort
+const   openProxy = (proxy, session) => {
+    console.log('ssl', session.profile.ssl);
+    proxy.register(session.profile.path, `localhost:${session.localPort}`, {
+        ssl: session.profile.ssl,
+        onRequest: (req, res, target) => {
+            console.log('target', target);
         }
-    });
-
-    session.proxy = proxy;
+    } );
 }
 
-const   do_start = (session, body) => {
+const   do_start = (proxy, session, body) => {
     openLocal(session);
-    openProxy(session);
+    openProxy(proxy, session);
 }
 
 module.exports = class {
-    constructor  (ws_port, port_range)   {
+    constructor  (proxy, ws_port, port_range)   {
+        this.proxy = proxy;
         this.proxyPort = [];
         this.sessionPool = [];
         this.ws_port = ws_port;
@@ -186,7 +185,7 @@ module.exports = class {
                         let port = this.searchFreePort();
                         session.localPort = port;
                         session.profile = profile;
-                        do_start(session, body);
+                        do_start(this.proxy, session, body);
                         break;
                     }
                 } else {
@@ -196,6 +195,8 @@ module.exports = class {
                 }
             });
             socket.on('close', () => {
+                console.log('close', session.localPort);
+                this.proxy.unregister(session.profile.path);
                 session.localServer.close();
                 this.freeSession(index);
             });

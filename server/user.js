@@ -8,11 +8,20 @@ const   USER = [
         profiles: [
             {
                 name: 'vhost1',
-                host: '10.1.254.12:8000'
+                path: 'shibuya',
+                ssl: {
+                    key:  "./certs/10.1.254.12-key.pem",
+                    cert: "./certs/10.1.254.12-cert.pem"
+                }
+            },
+            {
+                name: 'real',
+                path: '10.1.254.11',
+                ssl: true
             },
             {
                 name: 'vhost2',
-                host: 'www2.wasp.co.jp'
+                path: 'www2.wasp.co.jp'
             }
         ]
     }
@@ -43,7 +52,7 @@ const   getProfile = (user_name, profile_name) => {
         if  ( !profile_name )   {
             profile = Object({
                 name: 'default',
-                path: new RegExp(`^/${user.name}`)
+                path: `localhost/${user.name}`
             });
         } else {
             for ( let i = 0 ; i < user.profiles.length ; i += 1 )   {

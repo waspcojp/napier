@@ -1,40 +1,45 @@
-const {createServer}= require('http');
+const Redbird = require('redbird');
+const Es = require('electrode-server');
+
 const Tunnel = require('./tunnel');
-const URL = require('url');
 
 const WEB_PORT = 8000;
 const WS_PORT = 8001;
 const PORT_RANGE = [9000, 9100];
 
-const tunnel = new Tunnel(WS_PORT, PORT_RANGE);
+const proxy = Redbird({
+    port: WEB_PORT,
+    secure: false,
+    ssl: {
+        port: 8443,
+        key:  './certs/10.1.254.11-key.pem',
+        cert: './certs/10.1.254.11-cert.pem'
+    }
+});
+proxy.notFound((req, res) => {
+    res.statusCode = 404;
+    res.write('proxy not found');
+    res.end();
+})
+const tunnel = new Tunnel(proxy, WS_PORT, PORT_RANGE);
 
 tunnel.run();
 console.log('tunnel run');
-const server = createServer((req, res) => {
-    //console.log('req', req);
-    let session = tunnel.searchSession(req);
-    //console.log({session});
-    if  ( session ) {
-        let profile = session.profile;
-        //console.log('url', req.url);
-        let reg = profile.path;
-        //console.log('rewrite', reg);
-        if  ( reg ) {
-            req.url = req.url.replace(reg, '');
-        }
-        //console.log('to', req.url);
-        session.proxy.proxyRequest(req, res);
-    } else {
-        console.log('no proxy');
-        res.writeHead(200, {
-            'Content-Type': 'application/json'
-        });
-        res.end(JSON.stringify({
-            data: 'Hello'
-        }));
+/*
+Es({
+    connection: {
+        port: WEB_PORT
     }
+}).then((server) =>{
+    server.route({
+        method: 'get',
+        path: '/',
+        handler: (req, h) => {
+            return  'default';
+        }
+    });
+    
 });
 
-server.listen(WEB_PORT);
 console.log('server run');
-
+*/
