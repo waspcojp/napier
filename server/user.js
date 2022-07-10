@@ -16,7 +16,7 @@ const   USER = [
             },
             {
                 name: 'real',
-                path: '10.1.254.11',
+                path: '10.1.254.12/',
                 ssl: true
             },
             {
@@ -52,7 +52,7 @@ const   getProfile = (user_name, profile_name) => {
         if  ( !profile_name )   {
             profile = Object({
                 name: 'default',
-                path: `localhost/${user.name}`
+                path: `10.1.254.11/${user.name}`
             });
         } else {
             for ( let i = 0 ; i < user.profiles.length ; i += 1 )   {
