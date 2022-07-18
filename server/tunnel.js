@@ -5,18 +5,98 @@ const {auth, getProfile} = require('./user');
 const net = require('net');
 const URL = require('url');
 
+class   Session {
+    constructor(socket)   {
+        this.id = new_id();
+        this.tunnel = new TunnelConnection(socket);
+        this.channels = [{/* control channel */}];
+    }
+    searchFreeChannel() {
+        let channel;
+        for ( let i = 1 ; i < this.channels.length ; i += 1 )    {
+            if  ( !this.channels[i] )    {
+                channel = i;
+                break;
+            }
+        }
+        if  ( !channel )    {
+            channel = this.channels.length;
+            this.channels.push({});
+        }
+        console.log('channel pool max', this.channels.length);
+        return  (channel);
+    }
+    set_user(user)  {
+        this.user = user;
+    }
+    start(port, profile) {
+        this.localPort = port;
+        this.profile = profile;
+    }
+    connect(channel)    {
+        this.tunnel.connect(channel);
+    }
+    closeChannel(channel)  {
+        this.tunnel.close(channel);
+    }
+    sendData(channel, buff) {
+        this.tunnel.sendData(channel, buff);
+    }
+    sendControl(body)   {
+        body.id = this.id;
+        this.tunnel.sendControl(body);
+    }
+
+    open(proxy) {
+        console.log('ssl', this.profile.ssl);
+        proxy.register(this.profile.path, `localhost:${this.localPort}`, {
+            ssl: this.profile.ssl,
+            onRequest: (req, res, target) => {
+                console.log('target', target);
+            }
+        });
+    }
+    close(proxy) {
+        console.log('close', this.localPort);
+        if  ( this.profile ) {
+            proxy.unregister(this.profile.path);
+            this.localServer.close();
+        }
+    }
+    openLocal(){
+        console.log('proxyPort', this.localPort);
+        let local = net.createServer();
+        local.on('connection', (socket) => {
+            let channel = this.searchFreeChannel();
+            this.channels[channel] = socket;
+            console.log('connect', 'channel', channel);
+            this.connect(channel);
+            socket.on('data', (buff) => {
+                console.log('data', channel);
+                //console.log('buff', buff.toString());
+                this.sendData(channel, buff);
+            });
+            socket.on('close', (status) => {
+                console.log('close', channel);
+                this.closeChannel(channel);
+                this.channels[channel] = undefined;
+            })
+        });
+        this.localServer = local.listen(this.localPort);
+    }
+}
+
 const   do_auth = (session, body) => {
     console.log('auth', body.body);
     let user = auth(body.body.user, body.body.password);
     if  ( user )   {
         session.user = user.name;
-        session.tunnel.sendControl({
+        session.sendControl({
             status: 'OK',
-            message_id: body.message_id,
-            id: session.id
+            message_id: body.message_id
         });
     } else {
-        session.tunnel.sendControl({
+        session.sendControl({
             status: 'NG',
             message_id: body.message_id
         });
@@ -24,58 +104,10 @@ const   do_auth = (session, body) => {
     return  (user);
 }
 
-const   searchFreeChannel = (session) => {
-    let channel;
-    for ( let i = 1 ; i < session.channels.length ; i += 1 )    {
-        if  ( !session.channels[i] )    {
-            channel = i;
-            break;
-        }
-    }
-    if  ( !channel )    {
-        channel = session.channels.length;
-        session.channels.push({});
-    }
-    console.log('channel pool max', session.channels.length);
-    return  (channel);
-}
-
-const   openLocal = (session) => {
-    console.log('proxyPort', session.localPort);
-    session.channels = [{}];
-    let local = net.createServer();
-    local.on('connection', (socket) => {
-        let channel = searchFreeChannel(session);
-        session.channels[channel] = socket;
-        console.log('connect', 'channel', channel);
-        session.tunnel.connect(channel);
-        socket.on('data', (buff) => {
-            console.log('data', channel);
-            //console.log('buff', buff.toString());
-            session.tunnel.sendData(channel, buff);
-        });
-        socket.on('close', (status) => {
-            console.log('close', channel);
-            session.tunnel.close(channel);
-            session.channels[channel] = undefined;
-        })
-    });
-    session.localServer = local.listen(session.localPort);
-}
-
-const   openProxy = (proxy, session) => {
-    console.log('ssl', session.profile.ssl);
-    proxy.register(session.profile.path, `localhost:${session.localPort}`, {
-        ssl: session.profile.ssl,
-        onRequest: (req, res, target) => {
-            console.log('target', target);
-        }
-    } );
-}
 
 const   do_start = (proxy, session, body) => {
-    openLocal(session);
-    openProxy(proxy, session);
+    session.openLocal();
+    session.open(proxy);
 }
 
 module.exports = class {
@@ -106,63 +138,13 @@ module.exports = class {
         console.log('port', port);
         return  (port);
     }
-    freeSession(index)  {
-        console.log('close', index);
-        let session = this.sessionPool[index];
-        this.proxyPort[session.localPort] = undefined;
-        this.sessionPool[index] = undefined;
-    }
-    searchFreeSession() {
-        let index;
-        for ( let i = 0 ; i < this.sessionPool.length ; i += 1 ) {
-            if  ( !this.sessionPool[i] ) {
-                index = i;
-                break;
-            }
-        }
-        if  ( !index )  {
-            index = this.sessionPool.length;
-            this.sessionPool.push({});
-        }
-        return  ({
-            session: this.sessionPool[index],
-            index: index
-        });
-    }
-    searchSession(req)   {
-        let session;
-        let host = req.headers.host;
-        let url = URL.parse(req.url);
-        let method = req.method;
-        //console.log(host, method, url);
-        for ( let i = 0 ; i < this.sessionPool.length ; i ++ )   {
-            if  (   ( session = this.sessionPool[i] ) &&
-                    ( session.localPort ) ) {
-                let profile = session.profile;
-                if  ( ( ( !profile.path ) ||
-                        ( ( profile.path ) &&
-                          ( url.path.match(profile.path) ) ) ) &&
-                      ( ( !profile.host ) ||
-                        ( ( profile.host ) &&
-                          ( profile.host == host ) ) ) )    {
-                    
-                } else {
-                    session = undefined;
-                }
-            }
-        }
-        return  (session);
-    }
-    
     run()   {
         const ws = new WebSocketServer({
             port: this.ws_port
         });
         ws.on('connection', (socket) => {
-            let {session, index} = this.searchFreeSession();
+            let session = new Session(socket);
             let user;
-            session.id = new_id();
-            session.tunnel = new TunnelConnection(socket);
             socket.on('message', (message) => {
                 let recv = TunnelConnection.decodeMessage(message);
                 //console.log({recv});
@@ -173,7 +155,9 @@ module.exports = class {
                       case    'auth':
                         console.log('auth');
                         user = do_auth(session, body);
-                        session.user = user;
+                        session.set_user(user);
+                        break;
+                      case  'profiles':
                         break;
                       case  'start':
                         console.log('start');
@@ -182,10 +166,21 @@ module.exports = class {
                             profile_name = body.body.name;
                         }
                         let profile = getProfile(user.name, profile_name);
-                        let port = this.searchFreePort();
-                        session.localPort = port;
-                        session.profile = profile;
-                        do_start(this.proxy, session, body);
+                        if  ( profile ) {
+                            let port = this.searchFreePort();
+                            session.start(port, profile);
+                            do_start(this.proxy, session, body);
+                            session.sendControl({
+                                status: 'OK',
+                                message_id: body.message_id
+                            });
+                        } else {
+                            session.sendControl({
+                                status: 'NG',
+                                message_id: body.message_id,
+                                error: 'profile not found'
+                            });
+                        }
                         break;
                     }
                 } else {
@@ -195,10 +190,7 @@ module.exports = class {
                 }
             });
             socket.on('close', () => {
-                console.log('close', session.localPort);
-                this.proxy.unregister(session.profile.path);
-                session.localServer.close();
-                this.freeSession(index);
+                session.close(this.proxy);
             });
         })
     }

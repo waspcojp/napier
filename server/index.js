@@ -1,17 +1,14 @@
 const Redbird = require('redbird');
+const {HTTP_PORT, HTTPS_PORT, WS_PORT, LOCAL_PORT_RANGE} = require('../config/server.js');
 const Es = require('electrode-server');
 
 const Tunnel = require('./tunnel');
 
-const WEB_PORT = 8000;
-const WS_PORT = 8001;
-const PORT_RANGE = [9000, 9100];
-
 const proxy = Redbird({
-    port: WEB_PORT,
+    port: HTTP_PORT,
     secure: false,
     ssl: {
-        port: 8443,
+        port: HTTPS_PORT,
         key:  './certs/10.1.254.11-key.pem',
         cert: './certs/10.1.254.11-cert.pem'
     }
@@ -21,7 +18,7 @@ proxy.notFound((req, res) => {
     res.write('proxy not found');
     res.end();
 })
-const tunnel = new Tunnel(proxy, WS_PORT, PORT_RANGE);
+const tunnel = new Tunnel(proxy, WS_PORT, LOCAL_PORT_RANGE);
 
 tunnel.run();
 console.log('tunnel run');

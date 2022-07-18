@@ -3,24 +3,13 @@ const WebSocket = require('ws');
 const net = require('net');
 const {decodeMessage, encodeText, encodeChannelPacket, TYPE_CONNECT, TYPE_CLOSE, TYPE_DATA} = require('../libs/message');
 const EventEmitter = require('events');
+const Recv = new EventEmitter();
 
 const LOCAL_PORT = 4000;
 
 let channels = [0]
-const   searchFreeChannel = () => {
-    let channel;
-    for ( let i = 1 ; i < channels.length ; i += 1 )    {
-        if  ( !channels[i] )    {
-            channel = i;
-            break;
-        }
-    }
-    if  ( !channel )    {
-        channel = channels.length;
-        channels.push(channel);
-    }
-    return  (channel);
-}
+let sequence;
+let session;
 
 const server = http.createServer((req, res) => {
     console.log('host', req.headers.host);
@@ -34,14 +23,23 @@ const server = http.createServer((req, res) => {
 
 let ws = new WebSocket('ws://localhost:8001');
 
+const Api = (ws, func, arg, callback) => {
+    ws.send(encodeText(0, JSON.stringify({
+        method: func,
+        message_id: sequence,
+        body: arg
+    })));
+    if  ( callback )    {
+        Recv.on(`recv:${sequence}`, callback);
+    }
+}
+
 ws.on('message', (message) => {
     let recv = decodeMessage(message);
     //console.log({recv});
     if  ( recv.channel == 0 )   {
         let body = JSON.parse(recv.body);
-        if  ( body.message_id == sequence )   {
-            Recv.emit('recv', body);
-        }
+        Recv.emit(`recv:${body.message_id}`, body);
     } else {
         if  ( recv.body )   {
             console.log('channel data', recv.channel);
@@ -72,32 +70,31 @@ ws.on('message', (message) => {
     }
 });
 
-let sequence;
-const Recv = new EventEmitter();
-let session;
 ws.on('open', (e) => {
     console.log('open', e);
     sequence = 0;
-    ws.send(encodeText(0, JSON.stringify({
-        method: 'auth',
-        message_id: sequence,
-        body: {
+    Api(ws, 'auth', {
             user: 'ogochan',
             password:  '***'
-        }
-    })));
-    Recv.on('recv', (body) => {
-        console.log('body', body);
-        sequence += 1;
-        if  ( body.status == 'OK')  {
-            session = body.id;
-            ws.send(encodeText(0, JSON.stringify({
-                method: 'start',
-                message_id: sequence,
-                body: {
-//                    name: 'default'
-                }
-            })));
-        }
-    })
+        },
+        (body) => {
+            console.log('body', body);
+            sequence += 1;
+            if  ( body.status == 'OK')  {
+                session = body.id;
+                Api(ws, 'profiles', null, 
+                    (body) => {
+                        console.log('profiles', body);
+                    });
+                Api(ws, 'start', {
+                        name: 'vhost1'
+                    },
+                    (body) => {
+                        if  ( body.status != 'OK')  {
+                            console.log('error:', body.error);
+                            ws.close();
+                        }
+                    });
+            }
+        });
 });
