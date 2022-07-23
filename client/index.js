@@ -8,9 +8,10 @@ const Recv = new EventEmitter();
 const LOCAL_PORT = 4000;
 
 let channels = [0]
-let sequence;
-let session;
+let sequence = 0;
+let session_id;
 
+/*
 const server = http.createServer((req, res) => {
     console.log('host', req.headers.host);
     res.writeHead(200, {
@@ -20,18 +21,21 @@ const server = http.createServer((req, res) => {
         data: 'Hello'
     }));
 });
+*/
 
 let ws = new WebSocket('ws://localhost:8001');
 
 const Api = (ws, func, arg, callback) => {
     ws.send(encodeText(0, JSON.stringify({
         method: func,
+        session_id: session_id,
         message_id: sequence,
         body: arg
     })));
     if  ( callback )    {
         Recv.on(`recv:${sequence}`, callback);
     }
+    sequence += 1;
 }
 
 ws.on('message', (message) => {
@@ -72,19 +76,39 @@ ws.on('message', (message) => {
 
 ws.on('open', (e) => {
     console.log('open', e);
-    sequence = 0;
     Api(ws, 'auth', {
             user: 'ogochan',
             password:  '***'
         },
         (body) => {
             console.log('body', body);
-            sequence += 1;
             if  ( body.status == 'OK')  {
-                session = body.id;
+                session_id = body.id;
                 Api(ws, 'profiles', null, 
                     (body) => {
-                        console.log('profiles', body);
+                        console.log('profiles', body.profiles);
+                    });
+                Api(ws, 'del_profile', {
+                    name: 'real'
+                });
+                Api(ws, 'profiles', null, 
+                    (body) => {
+                        console.log('afre del profiles', body.profiles);
+                    });
+                Api(ws, 'put_profile', {
+                        name: 'vhost3',
+                        path: 'www.wasp.co.jp'
+                    });
+                Api(ws, 'profiles', null, 
+                    (body) => {
+                        console.log('afre put profiles', body.profiles);
+                    });
+                Api(ws, 'passwd', {
+                        old: '***',
+                        new: 'ogochan'
+                    },
+                    (body) => {
+                        console.log('passwd', body);
                     });
                 Api(ws, 'start', {
                         name: 'vhost1'

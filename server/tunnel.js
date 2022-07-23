@@ -1,7 +1,7 @@
 const {WebSocketServer} = require('ws');
 const new_id = require('../libs/id');
 const TunnelConnection = require('./tunnel-connection');
-const {auth, getProfile} = require('./user');
+const {auth, getProfile, delProfile, putProfile, passwd} = require('./user');
 const net = require('net');
 const URL = require('url');
 
@@ -43,8 +43,29 @@ class   Session {
         this.tunnel.sendData(channel, buff);
     }
     sendControl(body)   {
-        body.id = this.id;
+        body.message_id = this.message_id;
         this.tunnel.sendControl(body);
+    }
+    sendReturn(rc, true_status, false_status) {
+        if  ( rc )   {
+            if  ( typeof true_status === 'string' ) {
+                this.sendControl({
+                    status: true_status,
+                    message_id: this.message_id
+                });
+            } else {
+                this.sendControl(true_status);
+            }
+        } else {
+            if  ( typeof false_status === 'string' ) {
+                this.sendControl({
+                    status: false_status,
+                    message_id: this.message_id
+                });
+            } else {
+                this.sendControl(false_status);
+            }
+        }
     }
 
     open(proxy) {
@@ -60,7 +81,9 @@ class   Session {
         console.log('close', this.localPort);
         if  ( this.profile ) {
             proxy.unregister(this.profile.path);
-            this.localServer.close();
+            if  ( this.localServer )    {
+                this.localServer.close();
+            }
         }
     }
     openLocal(){
@@ -86,19 +109,20 @@ class   Session {
     }
 }
 
-const   do_auth = (session, body) => {
-    console.log('auth', body.body);
-    let user = auth(body.body.user, body.body.password);
+const   do_auth = (session, user_name, password, body) => {
+    console.log('auth', body);
+    let user = auth(user_name, password);
+    console.log({user});
+    console.log('message_id', session.message_id);
     if  ( user )   {
-        session.user = user.name;
         session.sendControl({
             status: 'OK',
-            message_id: body.message_id
+            message_id: session.message_id
         });
     } else {
         session.sendControl({
             status: 'NG',
-            message_id: body.message_id
+            message_id: session.message_id
         });
     }
     return  (user);
@@ -149,33 +173,48 @@ module.exports = class {
                 let recv = TunnelConnection.decodeMessage(message);
                 //console.log({recv});
                 if  ( recv.channel == 0 )   {
-                    let body = JSON.parse(recv.body);
+                    let body;
+                    let arg;
+                    if  ( recv.body )   {
+                        body = JSON.parse(recv.body);
+                        arg = body.body;
+                    }
                     console.log({body});
+                    session.message_id = body.message_id;
                     switch  ( body.method ) {
                       case    'auth':
                         console.log('auth');
-                        user = do_auth(session, body);
+                        user = do_auth(session, arg.user, arg.password, body);
                         session.set_user(user);
                         break;
+                      case  'passwd':
+                        console.log('passwd', arg);
+                        session.sendReturn(passwd(user, arg.old, arg.new), 'OK', 'NG');
+                        break;
                       case  'profiles':
+                        session.sendControl({
+                            profiles: session.user.profiles
+                        });
+                        break;
+                      case  'del_profile':
+                        console.log('del_profile', arg.name);
+                        session.sendReturn(delProfile(session.user, arg.name), 'OK', 'NG');
+                        break;
+                      case  'put_profile':
+                        console.log('put_profile', arg);
+                        session.sendReturn(putProfile(session.user, arg), 'OK', 'NG');
                         break;
                       case  'start':
                         console.log('start');
-                        let profile_name;
-                        if  ( body.body )   {
-                            profile_name = body.body.name;
-                        }
-                        let profile = getProfile(user.name, profile_name);
+                        let profile_name = arg.name;
+                        let profile = getProfile(user, profile_name);
                         if  ( profile ) {
                             let port = this.searchFreePort();
                             session.start(port, profile);
                             do_start(this.proxy, session, body);
-                            session.sendControl({
-                                status: 'OK',
-                                message_id: body.message_id
-                            });
+                            session.sendReturn(true, 'OK');
                         } else {
-                            session.sendControl({
+                            session.sendControl(true, {
                                 status: 'NG',
                                 message_id: body.message_id,
                                 error: 'profile not found'
@@ -192,6 +231,9 @@ module.exports = class {
             socket.on('close', () => {
                 session.close(this.proxy);
             });
+        });
+        ws.on('close', () => {
+            session.close(this.proxy);
         })
     }
 }
