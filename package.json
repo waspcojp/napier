@@ -11,11 +11,16 @@
   "author": "Masami Ogoshi",
   "license": "AGPL-3.0-or-later",
   "dependencies": {
-    "electrode-server": "^3.3.0",
-    "electron": "^19.0.8",
-    "http-proxy": "^1.18.1",
+    "bcrypt": "^5.0.1",
     "node-uuid": "^1.4.8",
     "redbird": "^0.10.0",
+    "sequelize": "^6.21.3",
+    "sqlite3": "^5.0.10",
     "ws": "^8.8.0"
+  },
+  "devDependencies": {
+    "electrode-server": "^3.3.0",
+    "electron": "^19.0.8",
+    "sequelize-cli": "^6.4.1"
   }
 }

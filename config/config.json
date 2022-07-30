@@ -1,0 +1,17 @@
+{
+  "development": {
+    "database": "napier_development",
+    "storage": "./db/napier_development.sqlite3",
+    "dialect": "sqlite"
+  },
+  "test": {
+    "database": "napier_test",
+    "storage": "./db/napier_test.sqlite3",
+    "dialect": "sqlite"
+  },
+  "production": {
+    "database": "napier_production",
+    "storage": "./db/napier_production.sqlite3",
+    "dialect": "sqlite"
+  }
+}

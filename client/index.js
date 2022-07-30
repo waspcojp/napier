@@ -23,8 +23,6 @@ const server = http.createServer((req, res) => {
 });
 */
 
-let ws = new WebSocket('ws://localhost:8001');
-
 const Api = (ws, func, arg, callback) => {
     ws.send(encodeText(0, JSON.stringify({
         method: func,
@@ -33,10 +31,15 @@ const Api = (ws, func, arg, callback) => {
         body: arg
     })));
     if  ( callback )    {
-        Recv.on(`recv:${sequence}`, callback);
+        Recv.on(`recv:${sequence}`, (body) => {
+            callback(body);
+            Recv.removeAllListeners(`recv:${sequence}`);
+        });
     }
     sequence += 1;
 }
+
+let ws = new WebSocket('ws://localhost:8001');
 
 ws.on('message', (message) => {
     let recv = decodeMessage(message);
@@ -79,6 +82,7 @@ ws.on('open', (e) => {
     Api(ws, 'auth', {
             user: 'ogochan',
             password:  '***'
+            //password:  'ogochan'
         },
         (body) => {
             console.log('body', body);
@@ -88,28 +92,41 @@ ws.on('open', (e) => {
                     (body) => {
                         console.log('profiles', body.profiles);
                     });
-                Api(ws, 'del_profile', {
-                    name: 'real'
+/*              Api(ws, 'passwd', {
+                    old: '***',
+                    new: 'ogochan'
+                },
+                (body) => {
+                    console.log('passwd', body);
                 });
-                Api(ws, 'profiles', null, 
+                Api(ws, 'del_profile', {
+                        name: 'real'
+                    },
                     (body) => {
-                        console.log('afre del profiles', body.profiles);
-                    });
+                        console.log('del_profile', body);
+                        Api(ws, 'profiles', null, 
+                            (body) => {
+                                console.log('afre del profiles', body);
+                            }
+                        );
+                    }
+                );
+*/
                 Api(ws, 'put_profile', {
                         name: 'vhost3',
                         path: 'www.wasp.co.jp'
-                    });
-                Api(ws, 'profiles', null, 
-                    (body) => {
-                        console.log('afre put profiles', body.profiles);
-                    });
-                Api(ws, 'passwd', {
-                        old: '***',
-                        new: 'ogochan'
                     },
                     (body) => {
-                        console.log('passwd', body);
-                    });
+                        console.log('put_profile', body);
+                        Api(ws, 'profiles', null, 
+                            (body) => {
+                                console.log('afre put profiles', body.profiles);
+                            }
+                        );
+                    }
+                );
+/*
+
                 Api(ws, 'start', {
                         name: 'vhost1'
                     },
@@ -119,6 +136,9 @@ ws.on('open', (e) => {
                             ws.close();
                         }
                     });
+*/
+            } else {
+                ws.close();
             }
         });
 });

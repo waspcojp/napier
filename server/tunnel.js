@@ -43,6 +43,7 @@ class   Session {
         this.tunnel.sendData(channel, buff);
     }
     sendControl(body)   {
+        console.log('sendControl', this.message_id);
         body.message_id = this.message_id;
         this.tunnel.sendControl(body);
     }
@@ -111,21 +112,23 @@ class   Session {
 
 const   do_auth = (session, user_name, password, body) => {
     console.log('auth', body);
-    let user = auth(user_name, password);
-    console.log({user});
-    console.log('message_id', session.message_id);
-    if  ( user )   {
-        session.sendControl({
-            status: 'OK',
-            message_id: session.message_id
+    return new Promise((done, fail) => {
+        auth(user_name, password).then((user) => {
+            console.log({user});
+            console.log('message_id', session.message_id);
+            session.sendControl({
+                status: 'OK',
+                message_id: session.message_id
+            });
+            done(user);
+        }).catch(() => {
+            session.sendControl({
+                status: 'NG',
+                message_id: session.message_id
+            });
+            fail();
         });
-    } else {
-        session.sendControl({
-            status: 'NG',
-            message_id: session.message_id
-        });
-    }
-    return  (user);
+    });
 }
 
 
@@ -168,7 +171,6 @@ module.exports = class {
         });
         ws.on('connection', (socket) => {
             let session = new Session(socket);
-            let user;
             socket.on('message', (message) => {
                 let recv = TunnelConnection.decodeMessage(message);
                 //console.log({recv});
@@ -184,30 +186,44 @@ module.exports = class {
                     switch  ( body.method ) {
                       case    'auth':
                         console.log('auth');
-                        user = do_auth(session, arg.user, arg.password, body);
-                        session.set_user(user);
+                        do_auth(session, arg.user, arg.password, body).then((user) => {
+                            console.log({user});
+                            session.set_user(user);
+                        }).catch(() => {
+                        });
                         break;
                       case  'passwd':
-                        console.log('passwd', arg);
-                        session.sendReturn(passwd(user, arg.old, arg.new), 'OK', 'NG');
+                        passwd(session.user, arg.old, arg.new).then((flag) => {
+                            console.log({flag});
+                            session.sendReturn(flag, 'OK', 'NG');
+                        });
                         break;
                       case  'profiles':
+                        console.log('profiles');
                         session.sendControl({
                             profiles: session.user.profiles
                         });
                         break;
                       case  'del_profile':
                         console.log('del_profile', arg.name);
-                        session.sendReturn(delProfile(session.user, arg.name), 'OK', 'NG');
+                        delProfile(session.user, arg.name).then((flag) => {
+                            session.sendReturn(flag, 'OK', 'NG');
+                        }).catch(() => {
+                            session.sendReturn(true, 'NG');
+                        });
                         break;
                       case  'put_profile':
                         console.log('put_profile', arg);
-                        session.sendReturn(putProfile(session.user, arg), 'OK', 'NG');
+                        putProfile(session.user, arg).then((flag) => {
+                            session.sendReturn(flag, 'OK', 'NG');
+                        }).catch(() => {
+                            session.sendReturn(true, 'NG');
+                        });
                         break;
                       case  'start':
                         console.log('start');
                         let profile_name = arg.name;
-                        let profile = getProfile(user, profile_name);
+                        let profile = getProfile(session.user, profile_name);
                         if  ( profile ) {
                             let port = this.searchFreePort();
                             session.start(port, profile);
