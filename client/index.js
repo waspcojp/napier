@@ -126,8 +126,8 @@ ws.on('open', (e) => {
                     }
                 );
 /*
-
-                Api(ws, 'start', {
+*/
+Api(ws, 'start', {
                         name: 'vhost1'
                     },
                     (body) => {
@@ -136,7 +136,6 @@ ws.on('open', (e) => {
                             ws.close();
                         }
                     });
-*/
             } else {
                 ws.close();
             }

@@ -17,10 +17,6 @@ function auth_user(name, password) {
 		models.User.findOne({
 			where: {
 				name: name
-			},
-			include: {
-				model: models.Profile,
-				as: 'profiles'
 			}
 		}).then((user) => {
 			//console.log(user);

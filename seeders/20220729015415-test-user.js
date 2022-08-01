@@ -38,7 +38,6 @@ module.exports = {
 			let user = new User(ent.name);
 			user.password = ent.password;
 			let u = await user.create();
-			//console.log('user', u);
 			for ( let pro of ent.profiles )	{
 				if	( pro.ssl )	{
 					await models.Profile.create({

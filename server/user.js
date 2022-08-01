@@ -2,6 +2,7 @@
 //  このコードはあくまでもスタブのようなものです
 //
 const models = require('../models');
+const Op = models.Sequelize.Op;
 const {auth_user} = require('../libs/user');
 const bcrypt = require('bcrypt');
 const SALT_ROUNDS = 10;
@@ -16,40 +17,54 @@ const   findUser = (user_name) => {
     }
     return  (user);
 }
+
+const   getProfiles = (user) => {
+    return  models.Profile.findAll({
+            userId: user.id
+        });
+}
+
 const   getProfile = (user, profile_name) => {
     let profile;
 
     if  ( user )    {
         if  ( !profile_name )   {
-            profile = Object({
-                name: 'default',
-                path: `10.1.254.11/${user.name}`
+            return  new Promise((done, fail) => {
+                let profile = Object({
+                    name: 'default',
+                    path: `10.1.254.11/${user.name}`
+                });
+                done(profile);
             });
         } else {
-            for ( let i = 0 ; i < user.profiles.length ; i += 1 )   {
-                if  ( user.profiles[i].name == profile_name )   {
-                    profile = user.profiles[i];
-                    break;
+            return  models.Profile.findOne({
+                where: {
+                    [Op.and]: {
+                        userId: user.id,
+                        name: profile_name
+                    }
                 }
-            }
+            })
         }
     }
-    return  (profile);
 }
 
 const   delProfile = (user, profile_name) => {
     return  new Promise((done, fail) => {
         if  ( user )    {
-            for ( let i = 0; i < user.profiles.length ; i += 1) {
-                if  ( user.profiles[i].name == profile_name )   {
-                    let profile = user.profiles[i];
-                    user.profiles.splice(i, 1);
-                    profile.destroy().then(() => {
-                        done(true);
-                    })
-                    break;
+            models.Profile.findOne({
+                where: {
+                    [Op.and]: {
+                        userId: user.id,
+                        name: profile_name
+                    }
                 }
-            }
+            }).then((profile) => {
+                console.log('delProfile', profile);
+                profile.destroy().then(() => {
+                    done(true);
+                });
+            });
         } else {
             fail()
         }
@@ -79,22 +94,11 @@ const   putProfile = (user, arg) => {
             }
 
             if  ( validateProfile(user, profile) )  {
-                for ( let i = 0; i < user.profiles.length; i += 1 ) {
-                    if  ( user.profiles[i].name == profile.name )   {
-                        find = i;
-                        break;
-                    }
-                }
                 profile.save().then(() => {
-                    if  ( find )    {
-                        user.profiles[find] = profile;
-                        ok = find;
-                    } else {
-                        user.profiles.push(profile);
-                        ok = user.profiles.length - 1;
-                    }
-                    done(ok);
-                });
+                    done(true);
+                }).catch(() => {
+                    fail(false);
+                })
             }
         } else {
             fail(false);
@@ -124,6 +128,7 @@ const   passwd = (user, old_pass, new_pass) => {
 module.exports = {
     auth: auth_user,
     passwd: passwd,
+    getProfiles: getProfiles,
     getProfile: getProfile,
     delProfile: delProfile,
     putProfile: putProfile

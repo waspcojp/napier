@@ -9,11 +9,13 @@ module.exports = {
         	type: Sequelize.INTEGER
       	},
       	userId: {
-        	type: Sequelize.INTEGER
+        	type: Sequelize.INTEGER,
+			unique: 'profileUserName'
       	},
       	name: {
     		allowNull: false,
-        	type: Sequelize.STRING
+        	type: Sequelize.STRING,
+			unique: 'profileUserName'
       	},
       	path: {
     		allowNull: false,
@@ -43,7 +45,13 @@ module.exports = {
         	allowNull: false,
         	type: Sequelize.DATE
       	}
-    });
+    }, {
+		uniqueKeys: {
+			profileUserName: {
+				fields: [ 'userId', 'name']
+			}
+		}
+	});
   	},
   	async down(queryInterface, Sequelize) {
     	await queryInterface.dropTable('Profiles');
