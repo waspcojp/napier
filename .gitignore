@@ -1,4 +1,5 @@
-# dist
+# application
+session/*
 web/dist/*
 
 # backup
