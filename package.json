@@ -5,22 +5,48 @@
   "main": "server/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
+    "build-production": "webpack -c --mode production",
+    "build": "webpack -c webpack.config.js --mode development",
+    "watch": "NODE_OPTIONS=--openssl-legacy-provider webpack -c webpack.config.js --watch",
     "server": "node ./server/index.js",
     "client": "node ./client/index.js"
   },
   "author": "Masami Ogoshi",
   "license": "AGPL-3.0-or-later",
   "dependencies": {
+    "@fortawesome/fontawesome-free": "^6.1.2",
     "bcrypt": "^5.0.1",
+    "bootstrap": "^5.2.0",
+    "bootstrap-icons": "^1.9.1",
+    "connect-multiparty": "^2.2.0",
+    "cookie-parser": "^1.4.6",
+    "cors": "^2.8.5",
+    "express": "^4.18.1",
+    "express-session": "^1.17.3",
+    "file-loader": "^6.2.0",
+    "morgan": "^1.10.0",
     "node-uuid": "^1.4.8",
+    "passport": "^0.6.0",
+    "passport-local": "^1.0.0",
     "redbird": "^0.10.0",
     "sequelize": "^6.21.3",
+    "session-file-store": "^1.5.0",
+    "sprightly": "^1.0.3",
     "sqlite3": "^5.0.10",
+    "svelte-loader": "^3.1.3",
+    "svelte-preprocess": "^4.10.7",
+    "svgo-loader": "^3.0.1",
+    "url-loader": "^4.1.1",
     "ws": "^8.8.0"
   },
   "devDependencies": {
+    "css-loader": "^6.7.1",
     "electrode-server": "^3.3.0",
     "electron": "^19.0.8",
-    "sequelize-cli": "^6.4.1"
+    "sequelize-cli": "^6.4.1",
+    "style-loader": "^3.3.1",
+    "webpack": "^5.74.0",
+    "webpack-cli": "^4.10.0",
+    "webpack-dev-server": "^4.9.3"
   }
 }

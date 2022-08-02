@@ -1,26 +1,60 @@
-const Redbird = require('redbird');
-const {HTTP_PORT, HTTPS_PORT, WS_PORT, LOCAL_PORT_RANGE} = require('../config/server.js');
-const Es = require('electrode-server');
+const {APPL_PORT} = require('../config/server.js');
+//const http = require('electrode-server');
+const http = require('http');
+const app = require('../web/app');
+const proxy = require('./proxy');
 
-const Tunnel = require('./tunnel');
+app.set('port', APPL_PORT);
+app.set('host', 'localhost');
 
-const proxy = Redbird({
-    port: HTTP_PORT,
-    secure: false,
-    ssl: {
-        port: HTTPS_PORT,
-        key:  './certs/10.1.254.11-key.pem',
-        cert: './certs/10.1.254.11-cert.pem'
+const server = http.createServer(app);
+
+app.listen(APPL_PORT);
+
+/**
+ * Event listener for HTTP server "error" event.
+ */
+
+const onError = (error) => {
+    if (error.syscall !== 'listen') {
+        throw error;
     }
-});
-proxy.notFound((req, res) => {
-    res.statusCode = 404;
-    res.write('proxy not found');
-    res.end();
-})
-const tunnel = new Tunnel(proxy, WS_PORT, LOCAL_PORT_RANGE);
+  
+    let bind = typeof port === 'string'
+        ? 'Pipe ' + port
+        : 'Port ' + port;
+  
+    // handle specific listen errors with friendly messages
+    switch (error.code) {
+      case 'EACCES':
+        console.error(bind + ' requires elevated privileges');
+        process.exit(1);
+        break;
+      case 'EADDRINUSE':
+        console.error(bind + ' is already in use');
+        process.exit(1);
+        break;
+      default:
+        throw error;
+    }
+}
+  
+/**
+* Event listener for HTTP server "listening" event.
+*/
+  
+const onListening = () => {
+    let addr = server.address();
+    let bind = typeof addr === 'string'
+      ? 'pipe ' + addr
+      : 'port ' + addr.port;
+    debug('Listening on ' + bind);
+}
+server.on('error', onError);
+server.on('listening', onListening);
 
-tunnel.run();
+proxy.run();
+
 console.log('tunnel run');
 /*
 Es({
@@ -38,5 +72,4 @@ Es({
     
 });
 
-console.log('server run');
 */
