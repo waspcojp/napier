@@ -14,6 +14,7 @@ const {User, is_authenticated} = require('../libs/user');
 global.env = require('../config/server');
 
 const homeRouter = require('./routes/home');
+const apiRouter = require('./routes/api');
 
 
 app.use(logger('dev'));		//	アクセスログを見たい時には有効にする
@@ -56,7 +57,7 @@ app.use('/dist', express.static(path.join(__dirname, './dist')));
 app.use('/style', express.static(path.join(__dirname, './front/stylesheets')));
 app.use('/public', express.static(path.join(__dirname, './public')));
 
-//app.use('/api', apiRouter);
+app.use('/api', apiRouter);
 
 app.use('/', homeRouter);
 

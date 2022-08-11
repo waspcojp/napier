@@ -112,9 +112,7 @@ const   passwd = (user, old_pass, new_pass) => {
         console.log('passwd');
         auth_user(user.name, old_pass).then((user) => {
             user.hash_password = bcrypt.hashSync(new_pass, SALT_ROUNDS);
-            console.log('**', user)
             user.save().then(() => {
-                console.log('***')
                 done(true);
             }).catch(() => {
                 done(false);

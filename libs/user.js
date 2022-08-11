@@ -48,6 +48,9 @@ class User {
 			this[key] = user_info[key];
 		});
 	}
+	static auth(name, password)	{
+		return	auth_user(name, password);
+	}
 	static current(req) {
 		let user;
 		if (( req.session ) &&

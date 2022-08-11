@@ -11,7 +11,7 @@ module.exports = {
 	context: path.resolve(__dirname, 'web/front/javascripts'),
     entry: {
 		login: './login.js',
-		home: './home.js',
+		index: './index.js',
 		common: './common.js',
 	},
     output: {

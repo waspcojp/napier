@@ -123,16 +123,29 @@ router.post('/signup', (req, res, next) => {
 	}
 });
 
-const home =  async (req, res, next) => {
-	res.render('home', {
-		title: 'Home',
+const index =  async (req, res, next) => {
+	let title;
+	switch	( req.params.base )	{
+	  case	'':
+	  case	'home':
+		title = 'Home';
+		break;
+	  case	'user':
+		title = 'User';
+		break;
+	  default:
+		title = '';
+		break;
+	}
+	res.render('index', {
+		title: title,
 		msg_type: '',
 		message: '',
 		user: User.current(req)
 	});
 };
 
-router.get('/', is_authenticated, home);
-router.get('/home/*', is_authenticated, home);
+router.get('/:base', is_authenticated, index);
+router.get('/', is_authenticated, index);
 
 module.exports = router;
