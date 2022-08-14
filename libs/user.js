@@ -51,6 +51,13 @@ class User {
 	static auth(name, password)	{
 		return	auth_user(name, password);
 	}
+	static get(name) {
+		return models.User.findOne({
+				where: {
+					name: name
+				}
+			});
+	}
 	static current(req) {
 		let user;
 		if (( req.session ) &&

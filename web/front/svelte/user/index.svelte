@@ -1,18 +1,23 @@
 <div class="row">
 {#if alert_success}
-    <div class="alert alert-success alert-dismissible fade show" role="alert">
+    <div class="alert alert-success" role="alert">
+        <button type="button" class="btn-close" aria-label="Close"
+            on:click="{() => {alert_success = undefined}}"></button>
         <strong>{alert_success}</strong>
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-    </div>
-{:else if alert_warning}
-    <div class="alert alert-warning alert-dismissible fade show" role="alert">
+        </div>
+{/if}
+{#if alert_warning}
+    <div class="alert alert-warning fade show" role="alert">
+        <button type="button" class="btn-close" aria-label="Close"
+            on:click="{() => {alert_warning = undefined}}"></button>
         <stroing>{alert_warning}</stroing>
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>
-{:else if alert_danger}
-    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+{/if}
+{#if alert_danger}
+    <div class="alert alert-danger fade show" role="alert">
+        <button type="button" class="btn-close" aria-label="Close"
+            on:click="{() => {alert_danger = undefined}}"></button>
         <strong>{alert_danger}</strong>
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>
 {/if}
 </div>
@@ -48,9 +53,12 @@ const update = (event) => {
     if  (( newPassword ) &&
          ( newPassword == confirmPassword ))    {
         passwd(currentPassword, newPassword).then((ret) => {
+            console.log({ret});
             if  ( ret.data.status == 'OK' )    {
                 alert_success = 'password update success';
+                alert_danger = undefined;
             } else {
+                alert_success = undefined;
                 alert_danger = 'password update fail';
             }
         });

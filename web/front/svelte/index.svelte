@@ -1,6 +1,8 @@
 <!-- svelte-ignore empty-block -->
 {#if ( args[2] == 'user' ) }
     <User></User>
+{:else if ( args[2] == 'profile' ) }
+    <Profiles></Profiles>
 {:else}
 <div class="row">
     <div class="col-5" style="padding:10px;">
@@ -13,6 +15,7 @@
 <script>
 import {onMount, beforeUpdate, afterUpdate, createEventDispatcher} from 'svelte';
 import User from './user/index.svelte';
+import Profiles from './profiles/index.svelte';
 
 let args;
 beforeUpdate(() => {

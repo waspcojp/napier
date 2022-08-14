@@ -11,6 +11,13 @@
 	<nav class="mt-2">
         <ul class="nav nav-pills nav-sidebar flex-column">
 			<li class="nav-item">
+				<a class={pathname.match(/\/manage\/profile\//)  ? 'nav-link active': 'nav-link'}
+                        href="profile">
+                    <i class="nav-icon fas fa-circle"></i>
+                    プロファイル
+                </a>
+			</li>
+			<li class="nav-item">
 				<a class={pathname.match(/\/manage\/user\//)  ? 'nav-link active': 'nav-link'}
                         href="user">
                     <i class="nav-icon fas fa-circle"></i>
