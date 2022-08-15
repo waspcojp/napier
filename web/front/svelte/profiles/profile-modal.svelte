@@ -1,4 +1,5 @@
 <style>
+
 </style>
 
 <div class="modal" id="profile-modal" tabindex="-1" data-bs-backdrop="static">
@@ -12,15 +13,42 @@
 			<div class="modal-body">
                 <div class="row fill-height">
                     <div class="row mb-3">
-                        <label for="path" class="col-sm-4 col-form-label">Path</label>
-                        <div class="col-sm-8">
+                        <label for="name" class="col-sm-2 col-form-label">Name</label>
+                        <div class="col-sm-10">
+                            <input type="text" class="form-control" bind:value={profile.name}>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <label for="path" class="col-sm-2 col-form-label">Path</label>
+                        <div class="col-sm-10">
                             <input type="text" class="form-control" bind:value={profile.path}>
                         </div>
                     </div>
                     <div class="row mb-3">
-                        <label for="ssl" class="col-sm-4 col-form-label">SSL</label>
-                        <div class="col-sm-8">
-                            <input type="text" class="form-control" value={profile.ssl ? "YES" : "NO"} readonly=true>
+                        <label for="ssl" class="col-sm-2 col-form-label">SSL</label>
+                        <div class="col-sm-10">
+                            <input type="checkbox" class="form-checkbox-input" bind:checked={profile.ssl} id="ssl">
+                            <label class="form-checkbox-label" for="ssl">
+                                Use SSL
+                            </label>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <label for="key" class="col-sm-2 col-form-label">Private key</label>
+                        <div class="col-sm-10">
+                            <textarea class="form-control monospace" bind:value={profile.key} rows="10"></textarea>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <label for="key" class="col-sm-2 col-form-label">Certificate</label>
+                        <div class="col-sm-10">
+                            <textarea class="form-control monospace" bind:value={profile.cert} rows="10"></textarea>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <label for="key" class="col-sm-2 col-form-label">Certificate</label>
+                        <div class="col-sm-10">
+                            <textarea class="form-control monospace" bind:value={profile.ca} rows="10"></textarea>
                         </div>
                     </div>
                 </div>
@@ -77,6 +105,7 @@ const save = (event) => {
 };
 
 const close_ = (event) => {
+    console.log('close');
 	clean_popup();
 };
 

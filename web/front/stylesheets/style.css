@@ -36,3 +36,6 @@ th {
 	background-color:#4cd964;
     //background-color: gray;
 }
+.monospace  {
+    font-family: monospace;
+}
