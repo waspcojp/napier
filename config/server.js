@@ -6,5 +6,6 @@ module.exports = {
     APPL_PORT: 3331,
 	home: process.env.HOME,
 	session_ttl: 3600 * 24 * 7,
-	session_path: `${process.env.HOME}/git/napier/sessions`
+	session_path: `${process.env.PWD}/sessions`,
+    cert_path: `${process.env.PWD}/certs`
 };

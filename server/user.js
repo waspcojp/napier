@@ -20,7 +20,9 @@ const   findUser = (user_name) => {
 
 const   getProfiles = (user) => {
     return  models.Profile.findAll({
-            userId: user.id
+            where: {
+                userId: user.id
+            }
         });
 }
 

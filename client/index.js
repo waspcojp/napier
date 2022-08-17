@@ -1,27 +1,12 @@
-const http = require('http');
 const WebSocket = require('ws');
 const net = require('net');
 const {decodeMessage, encodeText, encodeChannelPacket, TYPE_CONNECT, TYPE_CLOSE, TYPE_DATA} = require('../libs/message');
 const EventEmitter = require('events');
 const Recv = new EventEmitter();
 
-const LOCAL_PORT = 4000;
-
 let channels = [0]
 let sequence = 0;
 let session_id;
-
-/*
-const server = http.createServer((req, res) => {
-    console.log('host', req.headers.host);
-    res.writeHead(200, {
-        'Content-Type': 'application/json'
-    });
-    res.end(JSON.stringify({
-        data: 'Hello'
-    }));
-});
-*/
 
 const Api = (ws, func, arg, callback) => {
     ws.send(encodeText(0, JSON.stringify({
@@ -39,44 +24,50 @@ const Api = (ws, func, arg, callback) => {
     sequence += 1;
 }
 
-let ws = new WebSocket('ws://localhost:8001');
+const   clientOpen = (host, port, localPort) => {
+    let ws = new WebSocket(`ws://${host}:${port}`);
 
-ws.on('message', (message) => {
-    let recv = decodeMessage(message);
-    //console.log({recv});
-    if  ( recv.channel == 0 )   {
-        let body = JSON.parse(recv.body);
-        Recv.emit(`recv:${body.message_id}`, body);
-    } else {
-        if  ( recv.body )   {
-            console.log('channel data', recv.channel);
-            channels[recv.channel].write(recv.body);
+    ws.on('message', (message) => {
+        let recv = decodeMessage(message);
+        if  ( recv.channel == 0 )   {
+            let body = JSON.parse(recv.body);
+            Recv.emit(`recv:${body.message_id}`, body);
         } else {
-            switch( recv.type ) {
-              case  TYPE_CLOSE:
-                if  ( channels[recv.channel] )  {
-                    console.log('channel close', recv.channel);
-                    //channels[recv.channel].end();
-                    channels[recv.channel] = undefined;
+            if  ( recv.body )   {
+                //console.log('channel data', recv.channel);
+                channels[recv.channel].write(recv.body);
+            } else {
+                switch( recv.type ) {
+                  case  TYPE_CLOSE:
+                    if  ( channels[recv.channel] )  {
+                        //console.log('channel close', recv.channel);
+                        //channels[recv.channel].end();
+                        channels[recv.channel] = undefined;
+                    }
+                    break;
+                  case  TYPE_CONNECT:
+                    //console.log('channel connect', recv.channel);
+                    let localSocket = net.createConnection({
+                        host: 'localhost',
+                        port: localPort
+                    });
+                    localSocket.on('data', (buff) => {
+                        //console.log('buff', buff.toString());
+                        ws.send(encodeChannelPacket(recv.channel, TYPE_DATA, buff));
+                    });
+                    channels[recv.channel] = localSocket;
+                    break;
                 }
-                break;
-              case  TYPE_CONNECT:
-                console.log('channel connect', recv.channel);
-                let localSocket = net.createConnection({
-                    host: 'localhost',
-                    port: LOCAL_PORT
-                });
-                localSocket.on('data', (buff) => {
-                    //console.log('buff', buff.toString());
-                    ws.send(encodeChannelPacket(recv.channel, TYPE_DATA, buff));
-                });
-                channels[recv.channel] = localSocket;
-                break;
             }
         }
-    }
-});
+    });
+    ws.Api = (func, arg, callback) => {
+        Api(ws, func, arg, callback);
+    };
+    return  (ws);
+}
 
+/*
 ws.on('open', (e) => {
     console.log('open', e);
     Api(ws, 'auth', {
@@ -92,7 +83,7 @@ ws.on('open', (e) => {
                     (body) => {
                         console.log('profiles', body.profiles);
                     });
-/*              Api(ws, 'passwd', {
+                Api(ws, 'passwd', {
                     old: '***',
                     new: 'ogochan'
                 },
@@ -111,7 +102,6 @@ ws.on('open', (e) => {
                         );
                     }
                 );
-*/
                 Api(ws, 'put_profile', {
                         name: 'vhost3',
                         path: 'www.wasp.co.jp'
@@ -125,8 +115,6 @@ ws.on('open', (e) => {
                         );
                     }
                 );
-/*
-*/
                 Api(ws, 'start', {
                         name: 'vhost1'
                     },
@@ -141,3 +129,10 @@ ws.on('open', (e) => {
             }
         });
 });
+*/
+
+module.exports = {
+    clientOpen: clientOpen,
+    Api: Api
+};
+
