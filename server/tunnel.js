@@ -3,7 +3,6 @@ const TunnelConnection = require('./tunnel-connection');
 const {auth, getProfile, getProfiles, delProfile, putProfile, passwd} = require('./user');
 const Session = require('./session');
 const net = require('net');
-const URL = require('url');
 
 const   do_auth = (session, message_id, user_name, password, body) => {
     console.log('auth', body);

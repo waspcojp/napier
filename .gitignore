@@ -1,6 +1,7 @@
 # application
 sessions/*
 web/dist/*
+certs/*
 
 # backup
 *~

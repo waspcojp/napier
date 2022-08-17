@@ -1,6 +1,7 @@
 const Redbird = require('redbird');
 const {HTTP_PORT, HTTPS_PORT, WS_PORT, LOCAL_PORT_RANGE, APPL_PORT} = require('../config/server.js');
 const Tunnel = require('./tunnel');
+const staticRoute = require('../config/static');
 
 const proxy = Redbird({
     port: HTTP_PORT,
@@ -22,5 +23,9 @@ proxy.register('10.1.254.11/manage', `localhost:${APPL_PORT}`, {
         console.log('manage', target);
     }
 });
+
+for ( let route of staticRoute )    {
+    proxy.register(route.path, route.target);
+}
 
 module.exports = new Tunnel(proxy, WS_PORT, LOCAL_PORT_RANGE);
