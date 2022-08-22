@@ -95,7 +95,7 @@ module.exports = class {
         }
     }
 
-    open(proxy) {
+    register(proxy) {
         console.log('ssl', this.profile.ssl);
         if  ( this.profile.ssl )    {
             proxy.register(this.profile.path, `localhost:${this.localPort}`, {

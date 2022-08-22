@@ -27,7 +27,9 @@ const   do_auth = (session, message_id, user_name, password, body) => {
 const   do_start = (proxy, session, port, profile, body) => {
     session.start(port, profile);
     session.openLocal();
-    session.open(proxy);
+    if  ( !profile.path.match(/^\d+/) ) {
+        session.register(proxy);
+    }
 }
 
 
@@ -122,7 +124,12 @@ module.exports = class {
                 let profile_name = arg.name;
                 getProfile(session.user, profile_name).then((profile) => {
                     console.log('start', profile);
-                    let port = this.searchFreePort();
+                    let port;
+                    if  ( profile.path.match(/^\d+$/) ) {
+                        port = parseInt(profile.path);
+                    } else {
+                        port = this.searchFreePort();
+                    }
                     do_start(this.proxy, session, port, profile, body);
                     session.sendReturn(message_id, true, 'OK');
                 })
