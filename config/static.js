@@ -1,1 +1,1 @@
-static-sample.js
+static-wasp.js

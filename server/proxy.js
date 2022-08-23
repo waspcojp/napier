@@ -25,7 +25,9 @@ proxy.register('10.1.254.11/manage', `localhost:${APPL_PORT}`, {
 });
 
 for ( let route of staticRoute )    {
-    proxy.register(route.path, route.target);
+    if  ( route.target )    {
+        proxy.register(route.path, route.target);
+    }
 }
 
 module.exports = new Tunnel(proxy, WS_PORT, LOCAL_PORT_RANGE);
