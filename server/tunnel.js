@@ -123,7 +123,7 @@ module.exports = class {
                 console.log('start');
                 let profile_name = arg.name;
                 getProfile(session.user, profile_name).then((profile) => {
-                    console.log('start', profile);
+                    console.log('start', profile.name);
                     let port;
                     if  ( profile.path.match(/^\d+$/) ) {
                         port = parseInt(profile.path);

@@ -18,7 +18,7 @@ proxy.notFound((req, res) => {
     res.end();
 })
 
-proxy.register('10.1.254.11/manage', `localhost:${APPL_PORT}`, {
+proxy.register('localhost/manage', `localhost:${APPL_PORT}`, {
     onRequest: (req, res, target) => {
         console.log('manage', target);
     }

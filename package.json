@@ -9,7 +9,7 @@
     "build": "webpack -c webpack.config.js --mode development",
     "watch": "NODE_OPTIONS=--openssl-legacy-provider webpack -c webpack.config.js --watch",
     "server": "node ./server/index.js",
-    "client": "node ./client/index.js"
+    "cli": "node ./client/napier-cli.js"
   },
   "author": "Masami Ogoshi",
   "license": "AGPL-3.0-or-later",
