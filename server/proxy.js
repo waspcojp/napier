@@ -1,5 +1,5 @@
 const Redbird = require('redbird');
-const {HTTP_PORT, HTTPS_PORT, WS_PORT, LOCAL_PORT_RANGE, APPL_PORT} = require('../config/server.js');
+const {HTTP_PORT, HTTPS_PORT, WS_PORT, LOCAL_PORT_RANGE, APPL_PORT, MY_HOST} = require('../config/server.js');
 const Tunnel = require('./tunnel');
 const staticRoute = require('../config/static');
 
@@ -8,8 +8,8 @@ const proxy = Redbird({
     secure: false,
     ssl: {
         port: HTTPS_PORT,
-        key:  './certs/10.1.254.11-key.pem',
-        cert: './certs/10.1.254.11-cert.pem'
+        key:  `./certs/${MY_HOST}.pem`,
+        cert: `./certs/${MY_HOST}-cert.pem`
     }
 });
 proxy.notFound((req, res) => {
@@ -18,7 +18,7 @@ proxy.notFound((req, res) => {
     res.end();
 })
 
-proxy.register('localhost/manage', `localhost:${APPL_PORT}`, {
+proxy.register(`${MY_HOST}/manage`, `localhost:${APPL_PORT}`, {
     onRequest: (req, res, target) => {
         console.log('manage', target);
     }

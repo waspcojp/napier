@@ -2,6 +2,7 @@
 //  このコードはあくまでもスタブのようなものです
 //
 const models = require('../models');
+const {MY_HOST} = require('../config/server.js');
 const Op = models.Sequelize.Op;
 const {auth_user} = require('../libs/user');
 const bcrypt = require('bcrypt');
@@ -34,7 +35,7 @@ const   getProfile = (user, profile_name) => {
             return  new Promise((done, fail) => {
                 let profile = Object({
                     name: 'default',
-                    path: `10.1.254.11/${user.name}`
+                    path: `${MY_HOST}/${user.name}`
                 });
                 done(profile);
             });
