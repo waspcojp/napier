@@ -8,6 +8,12 @@ const {auth_user} = require('../libs/user');
 const bcrypt = require('bcrypt');
 const SALT_ROUNDS = 10;
 
+const   makeDefaultPath = (user) => {
+    let url = MY_HOST.split('.');
+    url[0] = user.name;
+    return  (url.join('.'));
+    //return  `${MY_HOST}/${user.name}`
+}
 const   findUser = (user_name) => {
     let user;
     for ( let i = 0 ; i < USER.length ; i += 1 )    {
@@ -35,7 +41,7 @@ const   getProfile = (user, profile_name) => {
             return  new Promise((done, fail) => {
                 let profile = Object({
                     name: 'default',
-                    path: `${MY_HOST}/${user.name}`
+                    path: makeDefaultPath(user)
                 });
                 done(profile);
             });
