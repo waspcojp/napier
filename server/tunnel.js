@@ -164,10 +164,14 @@ module.exports = class {
                 } else {
                     //console.log('recv', recv.channel);
                     let local = session.channels[recv.channel];
-                    local.write(recv.body);
-                    let size = recv.body.length - 1;
-                    if  ( size > 0 )    {
-                        session.send += size;
+                    if  ( local )   {
+                        local.write(recv.body);
+                        let size = recv.body.length - 1;
+                        if  ( size > 0 )    {
+                            session.send += size;
+                        }
+                    } else {
+                        console.log('no channel', recv.channel);
                     }
                 }
             });

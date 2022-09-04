@@ -34,25 +34,25 @@ const   clientOpen = (host, port, localPort) => {
             Recv.emit(`recv:${body.message_id}`, body);
         } else {
             if  ( recv.body )   {
-                console.log('channel data', recv.channel);
+                //console.log('channel data', recv.channel);
                 channels[recv.channel].write(recv.body);
             } else {
                 switch( recv.type ) {
                   case  TYPE_CLOSE:
                     if  ( channels[recv.channel] )  {
-                        console.log('channel close', recv.channel);
+                        //console.log('channel close', recv.channel);
                         //channels[recv.channel].end();
                         channels[recv.channel] = undefined;
                     }
                     break;
                   case  TYPE_CONNECT:
-                    console.log('channel connect', recv.channel);
+                    //console.log('channel connect', recv.channel);
                     let localSocket = net.createConnection({
                         host: 'localhost',
                         port: localPort
                     });
                     localSocket.on('data', (buff) => {
-                        console.log('buff', buff.toString());
+                        //console.log('buff', buff.toString());
                         ws.send(encodeChannelPacket(recv.channel, TYPE_DATA, buff));
                     });
                     channels[recv.channel] = localSocket;
