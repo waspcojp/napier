@@ -25,8 +25,8 @@ const Api = (ws, func, arg, callback) => {
 }
 
 const   ping = (ws) => {
-    ws.Api('ping', undefined, () => {
-        console.log('pong');
+    ws.Api('ping', undefined, (body) => {
+        console.log('pong', body);
     })
 }
 
@@ -34,6 +34,9 @@ const   clientOpen = (host, port, localPort) => {
     let ws = new WebSocket(`ws://${host}:${port}`);
 
     if  ( ws )  {
+        ws.Api = (func, arg, callback) => {
+            Api(ws, func, arg, callback);
+        };
         ws.on('message', (message) => {
             let recv = decodeMessage(message);
             if  ( recv.channel == 0 )   {
@@ -67,11 +70,8 @@ const   clientOpen = (host, port, localPort) => {
                     }
                 }
             }
+            ping(ws);
         });
-        ws.Api = (func, arg, callback) => {
-            Api(ws, func, arg, callback);
-        };
-        ping(ws);
     }
     return  (ws);
 }

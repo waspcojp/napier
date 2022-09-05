@@ -69,7 +69,7 @@ module.exports = class {
                 let message_id = body.message_id;
                 console.log('ping');
                 session.sendControl(message_id, {
-                    at: new Time(),
+                    at: new Date(),
                     message_id: body.message_id
                 });
             }
