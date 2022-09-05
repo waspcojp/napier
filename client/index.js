@@ -70,6 +70,8 @@ const   clientOpen = (host, port, localPort) => {
                     }
                 }
             }
+        });
+        ws.on('open', () => {
             ping(ws);
         });
     }
