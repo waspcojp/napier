@@ -24,46 +24,55 @@ const Api = (ws, func, arg, callback) => {
     sequence += 1;
 }
 
+const   ping = (ws) => {
+    ws.Api('ping', undefined, () => {
+        console.log('pong');
+    })
+}
+
 const   clientOpen = (host, port, localPort) => {
     let ws = new WebSocket(`ws://${host}:${port}`);
 
-    ws.on('message', (message) => {
-        let recv = decodeMessage(message);
-        if  ( recv.channel == 0 )   {
-            let body = JSON.parse(recv.body);
-            Recv.emit(`recv:${body.message_id}`, body);
-        } else {
-            if  ( recv.body )   {
-                //console.log('channel data', recv.channel);
-                channels[recv.channel].write(recv.body);
+    if  ( ws )  {
+        ws.on('message', (message) => {
+            let recv = decodeMessage(message);
+            if  ( recv.channel == 0 )   {
+                let body = JSON.parse(recv.body);
+                Recv.emit(`recv:${body.message_id}`, body);
             } else {
-                switch( recv.type ) {
-                  case  TYPE_CLOSE:
-                    if  ( channels[recv.channel] )  {
-                        //console.log('channel close', recv.channel);
-                        //channels[recv.channel].end();
-                        channels[recv.channel] = undefined;
+                if  ( recv.body )   {
+                    //console.log('channel data', recv.channel);
+                    channels[recv.channel].write(recv.body);
+                } else {
+                    switch( recv.type ) {
+                      case  TYPE_CLOSE:
+                        if  ( channels[recv.channel] )  {
+                            //console.log('channel close', recv.channel);
+                            //channels[recv.channel].end();
+                            channels[recv.channel] = undefined;
+                        }
+                        break;
+                      case  TYPE_CONNECT:
+                        //console.log('channel connect', recv.channel);
+                        let localSocket = net.createConnection({
+                            host: 'localhost',
+                            port: localPort
+                        });
+                        localSocket.on('data', (buff) => {
+                            //console.log('buff', buff.toString());
+                            ws.send(encodeChannelPacket(recv.channel, TYPE_DATA, buff));
+                        });
+                        channels[recv.channel] = localSocket;
+                        break;
                     }
-                    break;
-                  case  TYPE_CONNECT:
-                    //console.log('channel connect', recv.channel);
-                    let localSocket = net.createConnection({
-                        host: 'localhost',
-                        port: localPort
-                    });
-                    localSocket.on('data', (buff) => {
-                        //console.log('buff', buff.toString());
-                        ws.send(encodeChannelPacket(recv.channel, TYPE_DATA, buff));
-                    });
-                    channels[recv.channel] = localSocket;
-                    break;
                 }
             }
-        }
-    });
-    ws.Api = (func, arg, callback) => {
-        Api(ws, func, arg, callback);
-    };
+        });
+        ws.Api = (func, arg, callback) => {
+            Api(ws, func, arg, callback);
+        };
+        ping(ws);
+    }
     return  (ws);
 }
 

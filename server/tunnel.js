@@ -64,6 +64,16 @@ module.exports = class {
     command(session, body, arg)  {
         console.log({body});
         switch  ( body.method ) {
+          case  'ping':
+            {
+                let message_id = body.message_id;
+                console.log('ping');
+                session.sendControl(message_id, {
+                    at: new Time(),
+                    message_id: body.message_id
+                });
+            }
+            break;
           case    'auth':
             {
                 let message_id = body.message_id;
@@ -171,7 +181,7 @@ module.exports = class {
                             session.send += size;
                         }
                     } else {
-                        console.log('no channel', recv.channel);
+                        //console.log('no channel', recv.channel);
                     }
                 }
             });

@@ -1,6 +1,3 @@
-//
-//  このコードはあくまでもスタブのようなものです
-//
 const models = require('../models');
 const {MY_HOST} = require('../config/server.js');
 const Op = models.Sequelize.Op;
