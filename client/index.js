@@ -13,7 +13,6 @@ const Api = (ws, func, arg, callback) => {
     let sequence = ws.sequence;
     let timeout = setTimeout(() => {
         if  ( callback )    {
-            console.log('timeout seq=', sequence);
             callback(null);
             Recv.removeAllListeners(`recv:${sequence}`);
         }
@@ -38,9 +37,8 @@ const Api = (ws, func, arg, callback) => {
 
 const   ping = (ws) => {
     ws.Api('ping', undefined, (body) => {
-        console.log('pong', body);
+        //console.log('pong', body);
         if  ( body == null )    {
-            console.log('close');
             ws.Close();
         }
     })
@@ -53,8 +51,9 @@ const   clientOpen = (host, port, localPort) => {
         ws = new WebSocket(`ws://${host}:${port}`);
         ws.sequence = 0;
         ws.Close = () => {
+            //console.log('close');
             if  ( ws.ping )   {
-                console.log('clearInterval');
+                //console.log('clearInterval');
                 clearInterval(ws.ping);
                 ws.ping = null;
             }
@@ -102,12 +101,12 @@ const   clientOpen = (host, port, localPort) => {
             }
         });
         ws.on('error', () => {
-            console.log('error');
+            //console.log('error');
             ws.Close();
             ws = null;
         });
         ws.on('open', () => {
-            console.log('opened');
+            //console.log('opened');
             ws.ping = setInterval(() => {
                 ping(ws);
             }, 10 * 1000);

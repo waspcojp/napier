@@ -20,7 +20,7 @@ const   commandParser = () => {
 let closed = true;
 const   main = (opts, args) => {
     closed = false;
-    console.log('main');
+    //console.log('main');
     let ws = clientOpen(opts.host, opts.port, opts.localPort);
     ws.on('open', () => {
         ws.Api('auth', {
@@ -50,7 +50,7 @@ const   main = (opts, args) => {
             });
         });
     ws.on('close', () => {
-        console.log('closed');
+        //console.log('closed');
         closed = true;
     })
     return  (ws);
@@ -62,14 +62,18 @@ const   cli = () => {
     let args = program.args;
     console.log({opts});
     //main(opts, args);
-    setInterval(() => {
-        if  ( closed )  {
-            try {
-                main(opts, args);
-            } catch (e) {
-                console.log('error', e);
+    if  ( opts.reConnect )  {
+        setInterval(() => {
+            if  ( closed )  {
+                try {
+                    main(opts, args);
+                } catch (e) {
+                    console.log('error', e);
+                }
             }
-        }
-    }, 1000);
+        }, 1000);
+    } else {
+        main(opts, args);
+    }
 }
 cli();
