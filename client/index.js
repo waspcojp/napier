@@ -3,12 +3,21 @@ const net = require('net');
 const {decodeMessage, encodeText, encodeChannelPacket, TYPE_CONNECT, TYPE_CLOSE, TYPE_DATA} = require('../libs/message');
 const EventEmitter = require('events');
 const Recv = new EventEmitter();
+const {exit} = require('process');
 
 let channels = [0]
-let sequence = 0;
 let session_id;
+const TIMEOUT = 2000;
 
 const Api = (ws, func, arg, callback) => {
+    let sequence = ws.sequence;
+    let timeout = setTimeout(() => {
+        if  ( callback )    {
+            console.log('timeout seq=', sequence);
+            callback(null);
+            Recv.removeAllListeners(`recv:${sequence}`);
+        }
+    }, TIMEOUT);
     ws.send(encodeText(0, JSON.stringify({
         method: func,
         session_id: session_id,
@@ -16,23 +25,44 @@ const Api = (ws, func, arg, callback) => {
         body: arg
     })));
     if  ( callback )    {
-        Recv.on(`recv:${sequence}`, (body) => {
+        Recv.on(`recv:${ws.sequence}`, (body) => {
+            clearTimeout(timeout);
             callback(body);
             Recv.removeAllListeners(`recv:${sequence}`);
         });
+    } else {
+        clearTimeout(timeout);
     }
-    sequence += 1;
+    ws.sequence += 1;
 }
 
 const   ping = (ws) => {
     ws.Api('ping', undefined, (body) => {
         console.log('pong', body);
+        if  ( body == null )    {
+            console.log('close');
+            ws.Close();
+        }
     })
 }
 
 const   clientOpen = (host, port, localPort) => {
-    let ws = new WebSocket(`ws://${host}:${port}`);
-
+    let ws;
+    
+    try {
+        ws = new WebSocket(`ws://${host}:${port}`);
+        ws.sequence = 0;
+        ws.Close = () => {
+            if  ( ws.ping )   {
+                console.log('clearInterval');
+                clearInterval(ws.ping);
+                ws.ping = null;
+            }
+            ws.close();
+        }
+    } catch (e) {
+        ws = null;
+    }
     if  ( ws )  {
         ws.Api = (func, arg, callback) => {
             Api(ws, func, arg, callback);
@@ -71,8 +101,16 @@ const   clientOpen = (host, port, localPort) => {
                 }
             }
         });
+        ws.on('error', () => {
+            console.log('error');
+            ws.Close();
+            ws = null;
+        });
         ws.on('open', () => {
-            ping(ws);
+            console.log('opened');
+            ws.ping = setInterval(() => {
+                ping(ws);
+            }, 10 * 1000);
         });
     }
     return  (ws);

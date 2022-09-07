@@ -11,15 +11,16 @@ const   commandParser = () => {
     program.option        ('--host <host>', 'tunnel host', HOST);
     program.option        ('--port <port>', 'tunnel port', PORT);
     program.option        ('--local-port <localPort>', 'local port', LOCAL_PORT);
+    program.option        ('--re-connect',  're-connect server', false);
     program.argument      ('[profileName]', 'profile name', 'default');
     program.parse();
     return  program;
 }
-const   cli = () => {
-    let program = commandParser();
-    let opts = program.opts();
-    let args = program.args;
-    //console.log({opts});
+
+let closed = true;
+const   main = (opts, args) => {
+    closed = false;
+    console.log('main');
     let ws = clientOpen(opts.host, opts.port, opts.localPort);
     ws.on('open', () => {
         ws.Api('auth', {
@@ -48,5 +49,27 @@ const   cli = () => {
                 }
             });
         });
+    ws.on('close', () => {
+        console.log('closed');
+        closed = true;
+    })
+    return  (ws);
+}
+
+const   cli = () => {
+    let program = commandParser();
+    let opts = program.opts();
+    let args = program.args;
+    console.log({opts});
+    //main(opts, args);
+    setInterval(() => {
+        if  ( closed )  {
+            try {
+                main(opts, args);
+            } catch (e) {
+                console.log('error', e);
+            }
+        }
+    }, 1000);
 }
 cli();
