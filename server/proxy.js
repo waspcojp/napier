@@ -5,20 +5,20 @@ const staticRoute = require('../config/static');
 
 const proxy = Redbird({
     port: HTTP_PORT,
-    secure: false,
+    secure: true,
     ssl: {
         port: HTTPS_PORT,
+        key:  `./certs/${MY_HOST}.pem`,
+        cert: `./certs/${MY_HOST}-cert.pem`
+/*
         letsencrypt: {
             path: `./certs`,
-            port: 80,
+            port: 8000,
             email: 'ogochan@wasp.co.jp',
             production: false
         }
-/*
-        key:  `./certs/${MY_HOST}.pem`,
-        cert: `./certs/${MY_HOST}-cert.pem`
-    */
-       }
+*/
+    }
 });
 proxy.notFound((req, res) => {
     res.statusCode = 404;
@@ -27,6 +27,10 @@ proxy.notFound((req, res) => {
 })
 
 proxy.register(`${MY_HOST}/manage`, `localhost:${APPL_PORT}`, {
+    ssl: {                              //  force https
+        key:  `./certs/${MY_HOST}.pem`,
+        cert: `./certs/${MY_HOST}-cert.pem`
+    },
     onRequest: (req, res, target) => {
         console.log('manage', target);
     }
