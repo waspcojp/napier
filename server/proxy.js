@@ -8,9 +8,15 @@ const proxy = Redbird({
     secure: false,
     ssl: {
         port: HTTPS_PORT,
+        letsencrypt: {
+            email: 'ogochan@wasp.co.jp',
+            production: false
+        }
+/*
         key:  `./certs/${MY_HOST}.pem`,
         cert: `./certs/${MY_HOST}-cert.pem`
-    }
+    */
+       }
 });
 proxy.notFound((req, res) => {
     res.statusCode = 404;
