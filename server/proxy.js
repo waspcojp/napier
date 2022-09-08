@@ -9,6 +9,8 @@ const proxy = Redbird({
     ssl: {
         port: HTTPS_PORT,
         letsencrypt: {
+            path: `./certs`,
+            port: 80,
             email: 'ogochan@wasp.co.jp',
             production: false
         }
