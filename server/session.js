@@ -2,7 +2,7 @@ const TunnelConnection = require('./tunnel-connection');
 const new_id = require('../libs/id');
 const fs = require('fs');
 const net = require('net');
-const {MY_HOST} = require('../config/server.js');
+const {MY_DOMAIN} = require('../config/server.js');
 
 module.exports = class {
     constructor(socket)   {
@@ -32,8 +32,8 @@ module.exports = class {
         this.localPort = port;
         if  ( profile.name == 'default' )   {
             profile.ssl = {};
-            profile.ssl.key = `./certs/${MY_HOST}.pem`;
-            profile.ssl.cert = `./certs/${MY_HOST}-cert.pem`;
+            profile.ssl.key = `./certs/${MY_DOMAIN}.pem`;
+            profile.ssl.cert = `./certs/${MY_DOMAIN}-cert.pem`;
         } else
         if  ( profile.ssl ) {
             if  ( profile.key ) {
