@@ -6,7 +6,7 @@ const bcrypt = require('bcrypt');
 const SALT_ROUNDS = 10;
 
 const   makeDefaultPath = (user) => {
-    return  `${MY_DOMAIN}.${user.name}`;
+    return  `${user.name}.${MY_DOMAIN}`;
     //return  `www.${MY_DOMAIN}/${user.name}`;
 }
 const   findUser = (user_name) => {

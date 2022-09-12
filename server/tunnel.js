@@ -160,12 +160,12 @@ module.exports = class {
     run()   {
         let ws;
         if  ( cert_path )   {
+			console.log('use SSL', cert_path);
             let server = https.createServer({
-                port: this.ws_port,
                 cert: fs.readFileSync(`${cert_path}/${MY_DOMAIN}-cert.pem`),
                 key: fs.readFileSync(`${cert_path}/${MY_DOMAIN}.pem`)
-            })
-            ws = new WebSocketServer(server);
+            }).listen(this.ws_port);
+            ws = new WebSocketServer({server: server});
         } else {
             ws = new WebSocketServer({
                 port: this.ws_port
