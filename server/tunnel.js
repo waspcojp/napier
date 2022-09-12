@@ -155,9 +155,17 @@ module.exports = class {
         }
     }
     run()   {
-        const ws = new WebSocketServer({
-            port: this.ws_port
-        });
+        if  ( cert_path )   {
+            const ws = new WebSocketServer({
+                port: this.ws_port,
+                cert: fileReadSync(`${cert_path}/${MY_DOMAIN}-cert.pem`),
+                key: fileReadSync(`${cert_path}/${MY_COMAIN}.pem`)
+            });
+        } else {
+            const ws = new WebSocketServer({
+                port: this.ws_port
+            });
+        }
         ws.on('connection', (socket) => {
             let session = new Session(socket);
             socket.on('message', (message) => {
