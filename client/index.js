@@ -48,7 +48,8 @@ const   clientOpen = (host, port, localPort) => {
     let ws;
     
     try {
-        ws = new WebSocket(`ws://${host}:${port}`);
+        ws = new WebSocket(`wss://${host}:${port}`);
+        console.log('open');
         ws.sequence = 0;
         ws.Close = () => {
             //console.log('close');
@@ -60,6 +61,7 @@ const   clientOpen = (host, port, localPort) => {
             ws.close();
         }
     } catch (e) {
+        console.log('error', e);
         ws = null;
     }
     if  ( ws )  {
@@ -100,8 +102,8 @@ const   clientOpen = (host, port, localPort) => {
                 }
             }
         });
-        ws.on('error', () => {
-            //console.log('error');
+        ws.on('error', (e) => {
+            console.log('error',e);
             ws.Close();
             ws = null;
         });

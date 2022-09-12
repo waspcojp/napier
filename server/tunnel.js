@@ -5,6 +5,7 @@ const {auth, getProfile, getProfiles, delProfile, putProfile, passwd} = require(
 const Session = require('./session');
 const net = require('net');
 const fs = require('fs');
+const https = require('https');
 
 const   do_auth = (session, message_id, user_name, password, body) => {
     console.log('auth', body);
@@ -157,14 +158,16 @@ module.exports = class {
         }
     }
     run()   {
+        let ws;
         if  ( cert_path )   {
-            const ws = new WebSocketServer({
+            let server = https.createServer({
                 port: this.ws_port,
-                cert: fs.fileReadSync(`${cert_path}/${MY_DOMAIN}-cert.pem`),
-                key: fs.fileReadSync(`${cert_path}/${MY_COMAIN}.pem`)
-            });
+                cert: fs.readFileSync(`${cert_path}/${MY_DOMAIN}-cert.pem`),
+                key: fs.readFileSync(`${cert_path}/${MY_DOMAIN}.pem`)
+            })
+            ws = new WebSocketServer(server);
         } else {
-            const ws = new WebSocketServer({
+            ws = new WebSocketServer({
                 port: this.ws_port
             });
         }
