@@ -1,15 +1,13 @@
 const models = require('../models');
-const {MY_HOST} = require('../config/server.js');
+const {MY_DOMAIN} = require('../config/server.js');
 const Op = models.Sequelize.Op;
 const {auth_user} = require('../libs/user');
 const bcrypt = require('bcrypt');
 const SALT_ROUNDS = 10;
 
 const   makeDefaultPath = (user) => {
-    let url = MY_HOST.split('.');
-    url[0] = user.name;
-    return  (url.join('.'));
-    //return  `${MY_HOST}/${user.name}`
+    return  `${MY_DOMAIN}.${user.name}`;
+    //return  `www.${MY_DOMAIN}/${user.name}`;
 }
 const   findUser = (user_name) => {
     let user;
