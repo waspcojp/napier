@@ -4,6 +4,7 @@ const TunnelConnection = require('./tunnel-connection');
 const {auth, getProfile, getProfiles, delProfile, putProfile, passwd} = require('./user');
 const Session = require('./session');
 const net = require('net');
+const fs = require('fs');
 
 const   do_auth = (session, message_id, user_name, password, body) => {
     console.log('auth', body);
@@ -159,8 +160,8 @@ module.exports = class {
         if  ( cert_path )   {
             const ws = new WebSocketServer({
                 port: this.ws_port,
-                cert: fileReadSync(`${cert_path}/${MY_DOMAIN}-cert.pem`),
-                key: fileReadSync(`${cert_path}/${MY_COMAIN}.pem`)
+                cert: fs.fileReadSync(`${cert_path}/${MY_DOMAIN}-cert.pem`),
+                key: fs.fileReadSync(`${cert_path}/${MY_COMAIN}.pem`)
             });
         } else {
             const ws = new WebSocketServer({
