@@ -1,4 +1,5 @@
 const {WebSocketServer} = require('ws');
+const {MY_DOMAIN, cert_path} = require('../config/server.js');
 const TunnelConnection = require('./tunnel-connection');
 const {auth, getProfile, getProfiles, delProfile, putProfile, passwd} = require('./user');
 const Session = require('./session');
