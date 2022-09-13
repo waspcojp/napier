@@ -45,22 +45,26 @@ module.exports = class {
     }
     searchFreePort()    {
         let port;
+		console.log('searchFreePort()');
         for ( let i = this.port_range[0] ; i <= this.port_range[1] ; )    {
             if  ( !this.proxyPort[i - this.port_range[0]] )   {
+				console.log('test', i);
+                this.proxyPort[i - this.port_range[0]] = i;
                 let server = net.createServer();
-                server.listen(i, () => {
-                    server.on('listening', () => {
-                        port = server.address().port;
-                        this.proxyPort[i - this.port_range[0]] = i;
-                        server.close();
-                        console.log('port', port);
-                        return  (port);
-                    });
-                    server.on('error', () => {
-                        i += 1;
-                    });
+				console.log('createServer');
+				try {
+					server.listen(i);
+                    port = server.address().port;
+                    console.log('port', port);
+                    server.close();
+                    return  (port);
+				} catch(e) {
+					console.log(e);
+					this.proxyPort[i - this.port_range[0]] = undefined;
+					console.log('error', i);
                 }
             }
+            i += 1;
         }
         console.log('free port not found');
         return  (port);
@@ -200,6 +204,7 @@ module.exports = class {
                 }
             });
             socket.on('close', () => {
+				this.proxyPort[session.localPort - this.port_range[0]] = undefined;
                 session.close(this.proxy);
             });
         });
