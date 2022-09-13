@@ -11,7 +11,6 @@ const   do_auth = (session, message_id, user_name, password, body) => {
     console.log('auth', body);
     return new Promise((done, fail) => {
         auth(user_name, password).then((user) => {
-            console.log({user});
             console.log('message_id', message_id);
             session.sendControl(message_id, {
                 status: 'OK'
@@ -46,22 +45,24 @@ module.exports = class {
     }
     searchFreePort()    {
         let port;
-        for ( let i = this.port_range[0] ; i <= this.port_range[1] ; i += 1)    {
+        for ( let i = this.port_range[0] ; i <= this.port_range[1] ; )    {
             if  ( !this.proxyPort[i - this.port_range[0]] )   {
-                this.proxyPort[i] = i;
-                try {
-                    let server = net.createServer();
-                    server.listen(i);
-                    server.close();
-                    port = i;
-                    break;
-                }
-                catch(e)    {
-                    ;
+                let server = net.createServer();
+                server.listen(i, () => {
+                    server.on('listening', () => {
+                        port = server.address().port;
+                        this.proxyPort[i - this.port_range[0]] = i;
+                        server.close();
+                        console.log('port', port);
+                        return  (port);
+                    });
+                    server.on('error', () => {
+                        i += 1;
+                    });
                 }
             }
         }
-        console.log('port', port);
+        console.log('free port not found');
         return  (port);
     }
     command(session, body, arg)  {
@@ -82,7 +83,7 @@ module.exports = class {
                 let message_id = body.message_id;
                 console.log('auth');
                 do_auth(session, message_id, arg.user, arg.password, body).then((user) => {
-                    console.log({user});
+                    //console.log({user});
                     session.set_user(user);
                 }).catch(() => {
                 });

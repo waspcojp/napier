@@ -53,7 +53,7 @@ module.exports = class {
                 profile.ssl = true;
             }
         }
-        console.log('profile', profile);
+        //console.log('profile', profile.name);
         this.profile = profile;
         this.send = 0;
         this.recv = 0;
