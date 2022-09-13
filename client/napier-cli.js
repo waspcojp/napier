@@ -18,7 +18,7 @@ const   commandParser = () => {
 }
 
 let closed = true;
-const   main = (opts, args) => {
+const   tunnel = (opts, args) => {
     closed = false;
     //console.log('main');
     let ws = clientOpen(opts.host, opts.port, opts.localPort);
@@ -56,24 +56,24 @@ const   main = (opts, args) => {
     return  (ws);
 }
 
-const   cli = () => {
+const   main = () => {
     let program = commandParser();
     let opts = program.opts();
     let args = program.args;
-    console.log({opts});
-    //main(opts, args);
+    //console.log({opts});
     if  ( opts.reConnect )  {
         setInterval(() => {
             if  ( closed )  {
                 try {
-                    main(opts, args);
+                    tunnel(opts, args);
                 } catch (e) {
                     console.log('error', e);
                 }
             }
         }, 1000);
     } else {
-        main(opts, args);
+        tunnel(opts, args);
     }
 }
-cli();
+
+main();
