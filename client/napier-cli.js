@@ -7,20 +7,20 @@ const HOST = 'localhost';
 const PORT = 8001;
 
 const   parseOptions = () => {
-    program.option        ('--config <config filename>', 'config file');
-    program.option('--user <user>', 'user name');
-    program.option("--pass <pass>", "password");
-    program.option        ('--host <host>', 'tunnel host');
-    program.option        ('--port <port>', 'tunnel port');
-    program.option        ('--local-port <localPort>', 'local port');
-    program.option        ('--re-connect',  're-connect server');
-    program.option        ('--web-server',  'start web server');
-    program.argument      ('[profileName]', 'profile name', 'default');
+    program.option  ('--config <config filename>', 'config file');
+    program.option  ('--user <user>', 'user name');
+    program.option  ("--pass <pass>", "password");
+    program.option  ('--host <host>', 'tunnel host');
+    program.option  ('--port <port>', 'tunnel port');
+    program.option  ('--local-port <localPort>', 'local port');
+    program.option  ('--re-connect',  're-connect server');
+    program.option  ('--web-server',  'start web server');
+    program.argument('[profileName]', 'profile name', 'default');
     program.parse();
 
     let opts = program.opts();
     let args = program.args;
-    console.log({opts});
+
     if  ( opts.config ) {
         let config = JSON.parse(fs.readFileSync(opts.config, 'utf-8'));
         Object.keys(config).forEach((key) => {
@@ -38,7 +38,6 @@ const   parseOptions = () => {
     opts['webServer'] ||= false;
     return  { opts: opts, args: args};
 }
-
 
 let closed = true;
 const   tunnel = (opts, args) => {
