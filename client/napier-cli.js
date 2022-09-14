@@ -1,21 +1,44 @@
 const program = require('commander');   //  https://github.com/tj/commander.js
 const {clientOpen, Api} = require('./index');
+const fs = require('fs');
 
 const LOCAL_PORT = 4000;
 const HOST = 'localhost';
 const PORT = 8001;
 
-const   commandParser = () => {
-    program.requiredOption('--user <user>', 'user name');
-    program.requiredOption("--pass <pass>", "password");
-    program.option        ('--host <host>', 'tunnel host', HOST);
-    program.option        ('--port <port>', 'tunnel port', PORT);
-    program.option        ('--local-port <localPort>', 'local port', LOCAL_PORT);
-    program.option        ('--re-connect',  're-connect server', false);
+const   parseOptions = () => {
+    program.option        ('--config <config filename>', 'config file');
+    program.option('--user <user>', 'user name');
+    program.option("--pass <pass>", "password");
+    program.option        ('--host <host>', 'tunnel host');
+    program.option        ('--port <port>', 'tunnel port');
+    program.option        ('--local-port <localPort>', 'local port');
+    program.option        ('--re-connect',  're-connect server');
+    program.option        ('--web-server',  'start web server');
     program.argument      ('[profileName]', 'profile name', 'default');
     program.parse();
-    return  program;
+
+    let opts = program.opts();
+    let args = program.args;
+    console.log({opts});
+    if  ( opts.config ) {
+        let config = JSON.parse(fs.readFileSync(opts.config, 'utf-8'));
+        Object.keys(config).forEach((key) => {
+            if  ( opts[key] != undefined )   {
+                console.log('key', key, opts[key]);
+                config[key] = opts[key];
+            }
+        });
+        opts = config;
+    }
+    opts['host'] ||= HOST;
+    opts['port'] ||= PORT;
+    opts['localPort'] ||= LOCAL_PORT;
+    opts['reConnect'] ||= false;
+    opts['webServer'] ||= false;
+    return  { opts: opts, args: args};
 }
+
 
 let closed = true;
 const   tunnel = (opts, args) => {
@@ -57,10 +80,11 @@ const   tunnel = (opts, args) => {
 }
 
 const   main = () => {
-    let program = commandParser();
-    let opts = program.opts();
-    let args = program.args;
-    //console.log({opts});
+    let {opts, args} = parseOptions();
+    console.log({opts});
+    if  ( opts.webServer )  {
+
+    }
     if  ( opts.reConnect )  {
         setInterval(() => {
             if  ( closed )  {
