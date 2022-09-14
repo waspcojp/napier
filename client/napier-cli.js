@@ -8,18 +8,19 @@ const PORT = 8001;
 
 const   parseOptions = () => {
     program.option  ('--config <config filename>', 'config file');
-    program.option  ('--user <user>', 'user name');
-    program.option  ("--pass <pass>", "password");
-    program.option  ('--host <host>', 'tunnel host');
-    program.option  ('--port <port>', 'tunnel port');
-    program.option  ('--local-port <localPort>', 'local port');
-    program.option  ('--re-connect',  're-connect server');
-    program.option  ('--web-server',  'start web server');
-    program.argument('[profileName]', 'profile name', 'default');
+    program.option  ('--user <user>',              'user name');
+    program.option  ("--pass <pass>",              "password");
+    program.option  ('--host <host>',              'tunnel host');
+    program.option  ('--port <port>',              'tunnel port');
+    program.option  ('--local-port <localPort>',   'local port');
+    program.option  ('--re-connect',               're-connect server');
+    program.option  ('--web-server',               'start web server');
+    program.option  ('--document-root',            'web server document root');
+    program.argument('[profileName]',              'profile name', 'default');
     program.parse();
 
     let opts = program.opts();
-    let args = program.args;
+    let args = program.args[0];
 
     if  ( opts.config ) {
         let config = JSON.parse(fs.readFileSync(opts.config, 'utf-8'));
@@ -29,6 +30,9 @@ const   parseOptions = () => {
                 config[key] = opts[key];
             }
         });
+        if  ( config['profile'] )   {
+            profile = config['profile'];
+        }
         opts = config;
     }
     opts['host'] ||= HOST;
@@ -36,11 +40,13 @@ const   parseOptions = () => {
     opts['localPort'] ||= LOCAL_PORT;
     opts['reConnect'] ||= false;
     opts['webServer'] ||= false;
-    return  { opts: opts, args: args};
+    console.log({opts}, args);
+
+    return  { opts: opts, profile: args[0]};
 }
 
 let closed = true;
-const   tunnel = (opts, args) => {
+const   tunnel = (opts, profile) => {
     closed = false;
     //console.log('main');
     let ws = clientOpen(opts.host, opts.port, opts.localPort);
@@ -54,15 +60,15 @@ const   tunnel = (opts, args) => {
                 if  ( body.status == 'OK')  {
                     session_id = body.id;
                     ws.Api('start', {
-                            name: args[0]
+                            name: profile
                         },
                         (body) => {
                             if  ( body.status != 'OK')  {
-                                console.log(`can not start ${args[0]}`);
+                                console.log(`can not start ${profile}`);
                                 console.log('error:', body.error);
                                 ws.close();
                             } else {
-                                console.log(`start ${args[0]}`);
+                                console.log(`start ${profile}`);
                             }
                         });
                 } else {
@@ -79,8 +85,7 @@ const   tunnel = (opts, args) => {
 }
 
 const   main = () => {
-    let {opts, args} = parseOptions();
-    console.log({opts});
+    let {opts, profile} = parseOptions();
     if  ( opts.webServer )  {
 
     }
@@ -88,14 +93,14 @@ const   main = () => {
         setInterval(() => {
             if  ( closed )  {
                 try {
-                    tunnel(opts, args);
+                    tunnel(opts, profile);
                 } catch (e) {
                     console.log('error', e);
                 }
             }
         }, 1000);
     } else {
-        tunnel(opts, args);
+        tunnel(opts, profile);
     }
 }
 
