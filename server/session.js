@@ -31,9 +31,12 @@ module.exports = class {
     start(port, profile) {
         this.localPort = port;
         if  ( profile.name == 'default' )   {
+            profile.ssl = true;
+/*
             profile.ssl = {};
             profile.ssl.key = `./certs/${MY_DOMAIN}.pem`;
             profile.ssl.cert = `./certs/${MY_DOMAIN}-cert.pem`;
+*/
         } else
         if  ( profile.ssl ) {
             if  ( profile.key ) {
