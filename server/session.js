@@ -30,13 +30,9 @@ module.exports = class {
     }
     start(port, profile) {
         this.localPort = port;
+        console.log('profile', profile.name);
         if  ( profile.name == 'default' )   {
             profile.ssl = true;
-/*
-            profile.ssl = {};
-            profile.ssl.key = `./certs/${MY_DOMAIN}.pem`;
-            profile.ssl.cert = `./certs/${MY_DOMAIN}-cert.pem`;
-*/
         } else
         if  ( profile.ssl ) {
             if  ( profile.key ) {
@@ -56,7 +52,6 @@ module.exports = class {
                 profile.ssl = true;
             }
         }
-        //console.log('profile', profile.name);
         this.profile = profile;
         this.send = 0;
         this.recv = 0;

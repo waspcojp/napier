@@ -32,7 +32,8 @@ const   getProfile = (user, profile_name) => {
     let profile;
 
     if  ( user )    {
-        if  ( !profile_name )   {
+        if  (   ( !profile_name )
+            ||  ( profile_name == 'default' ))   {
             return  new Promise((done, fail) => {
                 let profile = Object({
                     name: 'default',
