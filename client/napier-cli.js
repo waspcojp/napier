@@ -1,6 +1,7 @@
 const program = require('commander');   //  https://github.com/tj/commander.js
 const {clientOpen, Api} = require('./index');
 const fs = require('fs');
+const startWebServer = require('./web-server');
 
 const LOCAL_PORT = 4000;
 const HOST = 'localhost';
@@ -15,12 +16,13 @@ const   parseOptions = () => {
     program.option  ('--local-port <localPort>',   'local port');
     program.option  ('--re-connect',               're-connect server');
     program.option  ('--web-server',               'start web server');
-    program.option  ('--document-root',            'web server document root');
+    program.option  ('--server-config <config filename>', 'web server config file');
+    program.option  ('--document-root <path>',     'web server document root');
     program.argument('[profileName]',              'profile name', 'default');
     program.parse();
 
     let opts = program.opts();
-    let args = program.args[0];
+    let args = program.args;
 
     if  ( opts.config ) {
         let config = JSON.parse(fs.readFileSync(opts.config, 'utf-8'));
@@ -87,7 +89,13 @@ const   tunnel = (opts, profile) => {
 const   main = () => {
     let {opts, profile} = parseOptions();
     if  ( opts.webServer )  {
-
+        if  ( opts.serverConfig )   {
+            let config = JSON.parse(fs.readFileSync(opts.serverConfig, 'utf-8'));
+            opts.documentRoot ||= config['public'];
+            startWebServer(opts.localPort, opts.documentRoot, config);
+        } else {
+            startWebServer(opts.localPort, opts.documentRoot);
+        }
     }
     if  ( opts.reConnect )  {
         setInterval(() => {
