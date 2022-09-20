@@ -87,8 +87,8 @@ router.post('/login', (req, res, next) => {
 router.get('/logout', (req, res, next) => {
 	//console.log('logout', req.user);
 	req.session.destroy();
-	req.logout();
-	res.redirect('login');
+	//req.logout();
+	res.redirect('/manage/login');
 });
 
 router.get('/signup', (req, res, next) => {

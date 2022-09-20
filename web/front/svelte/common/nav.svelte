@@ -15,7 +15,7 @@
 			<ul class="dropdown-menu"
 					aria-labelledby="user_menu">
 				<li>
-					<a href="/logout" class="dropdown-item">Sign out</a>
+					<a href="/manage/logout" class="dropdown-item">Sign out</a>
 				</li>
 			</ul>
 		</li>

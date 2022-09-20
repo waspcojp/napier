@@ -4,9 +4,11 @@ module.exports = {
     WS_PORT: 8001,
     LOCAL_PORT_RANGE: [9000, 9100],
     APPL_PORT: 3331,
-    MY_HOST: '10.1.254.11'
+    MY_DOMAIN: 'shibuya.local',
+    MY_HOST: 'shibuya.local',
 	home: process.env.HOME,
 	session_ttl: 3600 * 24 * 7,
 	session_path: `${process.env.PWD}/sessions`,
-    cert_path: `${process.env.PWD}/certs`
+    cert_path: `${process.env.PWD}/certs`,
+    content_path: `${process.env.PWD}/page`
 };

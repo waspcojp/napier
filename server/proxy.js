@@ -1,5 +1,5 @@
 const Redbird = require('redbird');
-const {HTTP_PORT, HTTPS_PORT, WS_PORT, LOCAL_PORT_RANGE, APPL_PORT, MY_DOMAIN} = require('../config/server.js');
+const {HTTP_PORT, HTTPS_PORT, WS_PORT, LOCAL_PORT_RANGE, APPL_PORT, MY_HOST, MY_DOMAIN} = require('../config/server.js');
 const Tunnel = require('./tunnel');
 const staticRoute = require('../config/static');
 
@@ -26,7 +26,7 @@ proxy.notFound((req, res) => {
     res.end();
 })
 
-proxy.register(`www.${MY_DOMAIN}/manage`, `localhost:${APPL_PORT}`, {
+proxy.register(`${MY_HOST}`, `localhost:${APPL_PORT}`, {
     ssl: {                              //  force https
         key:  `./certs/${MY_DOMAIN}.pem`,
         cert: `./certs/${MY_DOMAIN}-cert.pem`

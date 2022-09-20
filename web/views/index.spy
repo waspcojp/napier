@@ -2,6 +2,7 @@
 <html>
 	<head>
 		<title{{title}}</title>
+		<base href="/manage/">
 		<link rel="stylesheet" href="public/bootstrap-icons/font/bootstrap-icons.css">
 		<link rel="stylesheet" href="style/style.css">
 		<script src="dist/common.js"></script>

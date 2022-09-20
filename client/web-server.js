@@ -6,6 +6,7 @@ module.exports = (port, root, option) => {
 	option['public'] = root;
 
 	let server = http.createServer((req, res) => {
+		console.log('req', req.method, req.url,)
 		return	handler(req, res, option);
 	});
 
