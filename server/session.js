@@ -101,19 +101,15 @@ module.exports = class {
 
     register(proxy) {
         console.log('ssl', this.profile.ssl);
+        let src = this.profile.path;
+        let target = `localhost:${this.localPort}/`;
+
         if  ( this.profile.ssl )    {
-            proxy.register(this.profile.path, `localhost:${this.localPort}`, {
-                ssl: this.profile.ssl,
-                onRequest: (req, res, target) => {
-                    console.log('target', target);
-                }
+            proxy.register(src, target, {
+                ssl: this.profile.ssl
             });
         } else {
-            proxy.register(this.profile.path, `localhost:${this.localPort}`, {
-                onRequest: (req, res, target) => {
-                    console.log('target', target);
-                }
-            });
+            proxy.register(src, target);
         }
     }
     close(proxy) {

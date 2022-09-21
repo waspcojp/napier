@@ -18,7 +18,10 @@ const proxy = Redbird({
             production: false
         }
 */
-    }
+    },
+    onRequest: (req, res, _target) => {
+        console.log('target', _target);
+    }    
 });
 proxy.notFound((req, res) => {
     res.statusCode = 404;
