@@ -18,19 +18,19 @@ const   parseOptions = () => {
     program.option  ('--web-server',               'start web server');
     program.option  ('--server-config <config filename>', 'web server config file');
     program.option  ('--document-root <path>',     'web server document root');
+    program.option  ('--index',                    'list index');
     program.argument('[profileName]',              'profile name', 'default');
     program.parse();
 
     let opts = program.opts();
     let args = program.args;
 
+    //console.log({opts}, args);
     if  ( opts.config ) {
         let config = JSON.parse(fs.readFileSync(opts.config, 'utf-8'));
-        Object.keys(config).forEach((key) => {
-            if  ( opts[key] != undefined )   {
+        Object.keys(opts).forEach((key) => {
                 console.log('key', key, opts[key]);
                 config[key] = opts[key];
-            }
         });
         if  ( config['profile'] )   {
             profile = config['profile'];
@@ -42,7 +42,8 @@ const   parseOptions = () => {
     opts['localPort'] ||= LOCAL_PORT;
     opts['reConnect'] ||= false;
     opts['webServer'] ||= false;
-    console.log({opts}, args);
+    opts['index'] ||= false;
+    //console.log({opts}, args);
 
     return  { opts: opts, profile: args[0]};
 }
@@ -89,13 +90,14 @@ const   tunnel = (opts, profile) => {
 const   main = () => {
     let {opts, profile} = parseOptions();
     if  ( opts.webServer )  {
+        let config = {};
         if  ( opts.serverConfig )   {
-            let config = JSON.parse(fs.readFileSync(opts.serverConfig, 'utf-8'));
+            config = JSON.parse(fs.readFileSync(opts.serverConfig, 'utf-8'));
             opts.documentRoot ||= config['public'];
-            startWebServer(opts.localPort, opts.documentRoot, config);
         } else {
-            startWebServer(opts.localPort, opts.documentRoot);
+            config['directoryListing'] = opts.index;
         }
+        startWebServer(opts.localPort, opts.documentRoot, config);
     }
     if  ( opts.reConnect )  {
         setInterval(() => {
