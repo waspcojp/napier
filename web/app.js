@@ -36,14 +36,16 @@ const	getContent = (req, res) => {
 	console.log('file', file_path);
 	try	{
 		let mime_type = mime.getType(file_path);
-		res.set('Content-Type', mime_type);
-		let	content;
-		if	( mime_type.match(/^text\/(?<type>.+)/) )	{
-			content = fs.readFileSync(file_path, 'utf-8')
-		} else {
-			content = fs.readFileSync(file_path);
+		if	( mime_type )	{
+			res.set('Content-Type', mime_type);
+			let	content;
+			if	( mime_type.match(/^text\/(?<type>.+)/) )	{
+				content = fs.readFileSync(file_path, 'utf-8')
+			} else {
+				content = fs.readFileSync(file_path);
+			}
+			res.send(content);
 		}
-		res.send(content);
 	} catch(e)	{
 		console.log('getContent', e);
 		res.status(404).send('<h1>page not found</h1>');
