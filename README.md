@@ -1,5 +1,7 @@
 # Napier
 
+Japanese document is [here](README_jp.md)
+
 Napier is on demand proxy system, using websocket.
 
 ## CAUTION this system is not practical.
