@@ -6,6 +6,8 @@ Napier は websocketを使った逆プロキシのシステムです。
 
 Napierは転送用のコネクションにweb socketを使った逆プロキシシステムです。
 
+![](./contents/network.png)
+
 このため、ネットワーク的にNapierが見えてさえいれば、プロキシ先を置くことができます。
 
 ## 動作
