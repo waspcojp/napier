@@ -63,16 +63,90 @@ module.exports = {
 };
 ```
 
-このうち、必ず修正しなければならないのは、`MY_HOST`だけです。他は特に不都合がなければそのままで構いません。
+このうち、必ず修正しなければならないのは、`MY_DOMAIN`だけです。他は特に不都合がなければそのままで構いません。
 
 httpsを使うためには、証明書が必要です。ローカルで試すだけならオレオレ証明書(自己署名証明書)でも構いませんが、グローバルに置くためには、正しく取得する必要があります。デフォルトの設定の場合は、`./cert`直下に証明書と秘密鍵を起きます。この辺は「クイックスタート」にしては厄介なので、後程説明します。
 
-httpだけで
+httpsのみ接続許可する場合は、`HTTP_PORT`は不要です。同様にhttpのみで接続許可する場合は、`HTTPS_PORT`は不要です。
 
-## CAUTION this system is not practical.
+### アカウント作成
 
-This project is just getting started.
+**注** デフォルトアカウントは存在しません。
 
-The current code is just a code for demonstrating operation. For those who can read and understand the code.
+サーバを起動して接続可能になったら、アカウントを作成します。
 
-In the future, we plan to make it a practical system.
+非login状態で`www.${MY_DOMAIN}/manage`にアクセスすると、
+
+![](./contents/login.png)
+
+のように表示されますので、'Register a new membership'をクリックして下さい。
+
+![](./contents/register.png)
+
+現在は特にメール認証のようなものは行っていません。そのまま登録されます。
+
+### クライアント
+
+クライアントを接続するには、
+
+```shell
+$ npm run cli -- <options>
+```
+
+のように実行します。起動オプションは、
+
+```
+Usage: napier-cli [options] [profileName]
+
+Arguments:
+  profileName                        profile name (default: "default")
+
+Options:
+  --config <config filename>         config file
+  --user <user>                      user name
+  --pass <pass>                      password
+  --host <host>                      tunnel host
+  --port <port>                      tunnel port
+  --local-port <localPort>           local port
+  --re-connect                       re-connect server
+  --web-server                       start web server
+  --server-config <config filename>  web server config file
+  --document-root <path>             web server document root
+  --index                            list index
+```
+
+このうち、必ず指定するものは、`--user`, `--pass`, `--host`です。
+
+コマンドラインで指定するオプションは、
+
+```javascript
+{
+    "host": "www.napier-net.com",
+    "localPort": 4001,
+    "reConnect": true,
+    "webServer": false,
+    "user": "****",
+    "pass": "****",
+    "documentRoot": "."
+}
+```
+
+のようにファイルに格納して`--config`で指定することも可能です。
+
+コマンドラインの最後は「プロファイル」の指定となっていますが、これについては後程説明します。指定しない場合はデフォルトとなりますが、この時にプロキシが起動されるURLは、
+
+```
+(http|https)://<サーバのURL>/<ユーザ名>
+```
+
+となります。
+
+`--web-server`を指定すると、組み込みウェブサーバが起動します。`--document-root`で指定したディレクトリをdocument rootとするウェブサーバが起動され、プロキシ経由で外からアクセス可能になります。
+
+### デモサイト
+
+[デモサイト](https://www.napier-net.com)を作りましたので、サーバの設定なしで試してみることが可能です。
+
+サイトにアクセスしてユーザ登録を行った後にクライアント起動すると試すことが可能です。
+
+なお、このURLのサイトは将来的には正式なサービスとしてリリースする予定ですが、その時にはユーザ情報は引き継がれませんので、注意して下さい。
