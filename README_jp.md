@@ -47,6 +47,28 @@ $ sudo npm run server
 
 まずは、`config/server-sample.js`を`config/server.js`として読み込むように`ln -s`するか`mv`して下さい。
 
+```javascript
+module.exports = {
+    HTTP_PORT: 8000,
+    HTTPS_PORT: 8443,
+    WS_PORT: 8001,
+    LOCAL_PORT_RANGE: [9000, 9100],
+    APPL_PORT: 3331,
+    MY_DOMAIN: 'shibuya.local',
+    home: process.env.HOME,
+	session_ttl: 3600 * 24 * 7,
+	session_path: `${process.env.PWD}/sessions`,
+    cert_path: `${process.env.PWD}/certs`,
+    content_path: `${process.env.PWD}/page`
+};
+```
+
+このうち、必ず修正しなければならないのは、`MY_HOST`だけです。他は特に不都合がなければそのままで構いません。
+
+httpsを使うためには、証明書が必要です。ローカルで試すだけならオレオレ証明書(自己署名証明書)でも構いませんが、グローバルに置くためには、正しく取得する必要があります。デフォルトの設定の場合は、`./cert`直下に証明書と秘密鍵を起きます。この辺は「クイックスタート」にしては厄介なので、後程説明します。
+
+httpだけで
+
 ## CAUTION this system is not practical.
 
 This project is just getting started.
