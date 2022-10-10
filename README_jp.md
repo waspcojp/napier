@@ -77,11 +77,11 @@ httpsのみ接続許可する場合は、`HTTP_PORT`は不要です。同様にh
 
 非login状態で`www.${MY_DOMAIN}/manage`にアクセスすると、
 
-![](./contents/login.png)
+![](./../contents/login.png)
 
 のように表示されますので、'Register a new membership'をクリックして下さい。
 
-![](./contents/register.png)
+![](./../contents/register.png)
 
 現在は特にメール認証のようなものは行っていません。そのまま登録されます。
 
