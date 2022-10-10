@@ -2,7 +2,6 @@ const TunnelConnection = require('./tunnel-connection');
 const new_id = require('../libs/id');
 const fs = require('fs');
 const net = require('net');
-const {MY_DOMAIN} = require('../config/server.js');
 
 module.exports = class {
     constructor(socket)   {
