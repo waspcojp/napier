@@ -33,7 +33,7 @@ const   getProfile = (user, profile_name) => {
             return  new Promise((done, fail) => {
                 let profile = Object({
                     name: 'default',
-                    path: makeDefaultPath(user, MY_DOMAIN);
+                    path: makeDefaultPath(user, MY_DOMAIN)
                 });
                 done(profile);
             });
