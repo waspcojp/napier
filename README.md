@@ -4,7 +4,7 @@ Japanese document is [here](README_jp.md)
 
 Napier is on demand proxy system, using websocket.
 
-## Structure
+## Summary
 
 Napier is a reverse proxy system that uses web sockets for forwarding connections.
 
@@ -12,7 +12,7 @@ Napier is a reverse proxy system that uses web sockets for forwarding connection
 
 Therefore, as long as Napier is visible on the network, you can place a proxy destination.
 
-## Architecture
+## Structure
 
 When Napier server starts, it opens ports for web (port 80, port 443) and port for forwarding (port 8000).
 
@@ -147,7 +147,7 @@ At the end of the command line is the "profile" specification, which will be exp
 
 ## demo site
 
-I made a [demo site](https://www.napier-net.com), so you can try it without setting up a server.
+We've created a [demo site](https://www.napier-net.com), so you can try it without setting up a server.
 
 You can try it by starting the client after accessing the site and registering as a user.
 

@@ -2,7 +2,7 @@
 
 Napier は websocketを使った逆プロキシのシステムです。
 
-## 仕組み
+## 概要
 
 Napierは転送用のコネクションにweb socketを使った逆プロキシシステムです。
 
@@ -10,7 +10,7 @@ Napierは転送用のコネクションにweb socketを使った逆プロキシ�
 
 このため、ネットワーク的にNapierが見えてさえいれば、プロキシ先を置くことができます。
 
-## 動作
+## 仕組み
 
 Napier serverは、起動するとweb用のポート(port 80, port 443)と転送用のポート(port 8000)を開きます。
 
@@ -58,8 +58,8 @@ module.exports = {
     APPL_PORT: 3331,
     MY_DOMAIN: 'shibuya.local',
     home: process.env.HOME,
-	session_ttl: 3600 * 24 * 7,
-	session_path: `${process.env.PWD}/sessions`,
+    session_ttl: 3600 * 24 * 7,
+    session_path: `${process.env.PWD}/sessions`,
     cert_path: `${process.env.PWD}/certs`,
     content_path: `${process.env.PWD}/page`
 };
