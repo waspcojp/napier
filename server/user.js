@@ -1,24 +1,9 @@
 const models = require('../models');
-const {MY_DOMAIN} = require('../config/server.js');
+const {MY_DOMAIN, makeDefaultPath} = require('../config/server.js');
 const Op = models.Sequelize.Op;
 const {auth_user} = require('../libs/user');
 const bcrypt = require('bcrypt');
 const SALT_ROUNDS = 10;
-
-const   makeDefaultPath = (user) => {
-    return  `${user.name}.${MY_DOMAIN}`;
-    //return  `www.${MY_DOMAIN}/${user.name}`;
-}
-const   findUser = (user_name) => {
-    let user;
-    for ( let i = 0 ; i < USER.length ; i += 1 )    {
-        if  ( USER[i].name == user_name )    {
-            user = USER[i];
-            break;
-        }
-    }
-    return  (user);
-}
 
 const   getProfiles = (user) => {
     return  models.Profile.findAll({

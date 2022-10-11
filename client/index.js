@@ -111,7 +111,7 @@ const   clientOpen = (host, port, localPort) => {
             //console.log('opened');
             ws.ping = setInterval(() => {
                 ping(ws);
-            }, 10 * 1000);
+            }, 60 * 1000);
         });
     }
     return  (ws);
