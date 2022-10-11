@@ -5,6 +5,17 @@ const {auth_user} = require('../libs/user');
 const bcrypt = require('bcrypt');
 const SALT_ROUNDS = 10;
 
+const   findUser = (user_name) => {
+    let user;
+    for ( let i = 0 ; i < USER.length ; i += 1 )    {
+        if  ( USER[i].name == user_name )    {
+            user = USER[i];
+            break;
+        }
+    }
+    return  (user);
+}
+
 const   getProfiles = (user) => {
     return  models.Profile.findAll({
             where: {
