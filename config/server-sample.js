@@ -9,5 +9,9 @@ module.exports = {
 	session_ttl: 3600 * 24 * 7,
 	session_path: `${process.env.PWD}/sessions`,
     cert_path: `${process.env.PWD}/certs`,
-    content_path: `${process.env.PWD}/page`
+    content_path: `${process.env.PWD}/page`,
+    makeDefaultPath: (domain, user) => {
+        return  `${user.name}.${domain}`;
+        //return  `www.${domain}/${user.name}`;
+    }
 };
