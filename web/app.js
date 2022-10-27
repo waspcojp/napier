@@ -44,8 +44,8 @@ const	getContent = (req, res) => {
 			} else {
 				content = fs.readFileSync(file_path);
 			}
+			res.send(content);
 		}
-		res.send(content);
 	} catch(e)	{
 		console.log('getContent', e);
 		res.status(404).send('<h1>page not found</h1>');
