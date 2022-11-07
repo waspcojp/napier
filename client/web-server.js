@@ -1,6 +1,5 @@
 //const handler = require('serve-handler');	//	https://github.com/vercel/serve-handler
 require('svelte/register');
-const App = require('./directory.svelte').default;
 
 const http = require('http');
 
@@ -8,7 +7,7 @@ const http = require('http');
 const {promisify} = require('util');
 const path = require('path');
 const {createHash} = require('crypto');
-const {realpath, lstat, createReadStream, readdir} = require('fs');
+const {realpath, lstat, createReadStream, readdir, readFileSync} = require('fs');
 
 const ORIGINAL = '../node_modules/serve-handler/src';
 
@@ -24,8 +23,24 @@ const isPathInside = require('path-is-inside');
 const parseRange = require('range-parser');
 
 // Other
-const directoryTemplate = require(`${ORIGINAL}/directory`);
 const errorTemplate = require(`${ORIGINAL}/error`);
+
+// markdown support
+const MarkdownIt = require('markdown-it');
+const Emoji = require("markdown-it-emoji");
+const Prism = require("markdown-it-prism");
+const ReplaceLink = require("markdown-it-replace-link");
+require("prismjs/components/prism-bash");
+require("prismjs/components/prism-c");
+require("prismjs/components/prism-clike");
+require("prismjs/components/prism-cpp.js");
+require("prismjs/components/prism-javascript");
+require("prismjs/components/prism-http");
+require("prismjs/components/prism-llvm");
+require("prismjs/components/prism-makefile");
+require("prismjs/components/prism-ruby");
+require("prismjs/components/prism-python");
+require("prismjs/components/prism-shell-session");
 
 const etags = new Map();
 
@@ -334,6 +349,7 @@ const renderDirectory = async (current, acceptsJSON, handlers, methods, config, 
 	const {directoryListing, trailingSlash, unlisted = [], renderSingle} = config;
 	const slashSuffix = typeof trailingSlash === 'boolean' ? (trailingSlash ? '/' : '') : '/';
 	const {relativePath, absolutePath} = paths;
+	const App = require('./directory.svelte').default;
 	const excluded = [
 		'.DS_Store',
 		'.git',
@@ -473,6 +489,62 @@ const renderDirectory = async (current, acceptsJSON, handlers, methods, config, 
 	const output = acceptsJSON ? JSON.stringify(spec) : html;
 	return {directory: output};
 };
+
+const mdInit = (_path) => {
+	let dir = path.dirname(_path);
+	let _markdown = new MarkdownIt({
+			html:         true,        // Enable HTML tags in source
+			xhtmlOut:     false,        // Use '/' to close single tags (<br />)
+			breaks:       false,        // Convert '\n' in paragraphs into <br>
+			linkify:      true,         // autoconvert URL-like texts to links
+			typographer:  true,         // Enable smartypants and other sweet transforms
+		})
+		.use((ReplaceLink), {
+			replaceLink: (link, env) => {
+				console.log(link);
+				return	`${dir}/${link}`;
+			}
+		})
+		.use((Emoji))
+		.use((Prism), {
+			plugins: [
+				'line-numbers'
+			],
+			defaultLanguage: 'clike'});
+	_markdown.renderer.rules.table_open = () => {
+		return '<table class="table table-striped">\n';
+	};
+
+	_markdown.renderer.rules.paragraph_open =
+	_markdown.renderer.rules.heading_open = (tokens, idx, options, env, slf) => {
+		let line;
+		if (tokens[idx].map && tokens[idx].level === 0) {
+			line = tokens[idx].map[0];
+			tokens[idx].attrJoin('class', 'line');
+			tokens[idx].attrSet('data-line', String(line));
+		}
+		return slf.renderToken(tokens, idx, options, env, slf);
+	}
+	return(_markdown);
+}
+
+const renderMarkdown = async (absolutePath) => {
+	const App = require('./content.svelte').default;
+	try {
+		let markdown = mdInit('');
+		let source = readFileSync(absolutePath, 'utf-8');
+		let inner_html = markdown.render(source);
+		let {html} = App.render({
+			procs: {
+				html: inner_html
+			}
+		});
+		return	(html);
+	} catch(err)	{
+		console.log('markdown render error', err);
+		return	('');
+	}
+}
 
 const sendError = async (absolutePath, response, acceptsJSON, current, handlers, config, spec) => {
 	const {err: original, message, code, statusCode} = spec;
@@ -650,7 +722,7 @@ const handler = async (request, response, config = {}, methods = {}) => {
 		}
 	}
 
-	if (stats && stats.isDirectory()) {
+	if (stats && stats.isDirectory()) {		//	directory
 		let directory = null;
 		let singleFile = null;
 
@@ -710,6 +782,20 @@ const handler = async (request, response, config = {}, methods = {}) => {
 		stats = await handlers.lstat(absolutePath);
 	}
 
+	//	read contents here!!
+	const headers = await getHeaders(handlers, config, current, absolutePath, stats);
+
+	if	( absolutePath.match(/\.md/g) )	{
+		let content = await renderMarkdown(absolutePath);
+		if	( content )	{
+			response.statusCode = 200;
+			response.setHeader('Content-Type', 'text/html; charset=utf-8');
+			response.end(content);
+	
+			return;
+		}
+		stats = null;
+	}
 	const streamOpts = {};
 
 	// TODO ? if-range
@@ -734,12 +820,11 @@ const handler = async (request, response, config = {}, methods = {}) => {
 	let stream = null;
 
 	try {
+console.log('read:', absolutePath);
 		stream = await handlers.createReadStream(absolutePath, streamOpts);
 	} catch (err) {
 		return internalError(absolutePath, response, acceptsJSON, current, handlers, config, err);
 	}
-
-	const headers = await getHeaders(handlers, config, current, absolutePath, stats);
 
 	// eslint-disable-next-line no-undefined
 	if (streamOpts.start !== undefined && streamOpts.end !== undefined) {
