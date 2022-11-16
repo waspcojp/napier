@@ -4,7 +4,6 @@ const Tunnel = require('./tunnel');
 const staticRoute = require('../config/static');
 
 const options = {};
-
 if  ( HTTP_PORT )   {
     options['port'] = HTTP_PORT;
 }
@@ -24,12 +23,17 @@ proxy.notFound((req, res) => {
     res.end();
 })
 
-proxy.register(`www.${MY_DOMAIN}`, `localhost:${APPL_PORT}`, HTTPS_PORT ? {
-    ssl: {                              //  force https
-        key:  `./certs/${MY_DOMAIN}.pem`,
-        cert: `./certs/${MY_DOMAIN}-cert.pem`
-    }
-} : undefined);
+if  (( MY_DOMAIN.match(/\.local$/) )||
+     ( MY_DOMAIN.match(/^\d\.\d.\d.\d/) ) ) {
+    proxy.register(MY_DOMAIN, `localhost:${APPL_PORT}`);
+} else {
+    proxy.register(`www.${MY_DOMAIN}`, `localhost:${APPL_PORT}`, HTTPS_PORT ? {
+        ssl: {                              //  force https
+            key:  `./certs/${MY_DOMAIN}.pem`,
+            cert: `./certs/${MY_DOMAIN}-cert.pem`
+        }
+    } : undefined);
+}
 
 for ( let route of staticRoute )    {
     if  ( route.target )    {
