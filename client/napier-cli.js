@@ -27,15 +27,17 @@ const   parseOptions = () => {
 
     //console.log({opts}, args);
     if  ( opts.config ) {
-        let config = JSON.parse(fs.readFileSync(opts.config, 'utf-8'));
-        Object.keys(opts).forEach((key) => {
-                console.log('key', key, opts[key]);
-                config[key] = opts[key];
-        });
-        if  ( config['profile'] )   {
-            profile = config['profile'];
-        }
-        opts = config;
+        try {
+            let config = JSON.parse(fs.readFileSync(opts.config, 'utf-8'));
+            Object.keys(opts).forEach((key) => {
+                    console.log('key', key, opts[key]);
+                    config[key] = opts[key];
+            });
+            if  ( config['profile'] )   {
+                profile = config['profile'];
+            }
+            opts = config;
+        } catch (e) {}
     }
     opts['host'] ||= HOST;
     opts['port'] ||= PORT;
