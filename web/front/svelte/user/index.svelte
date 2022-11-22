@@ -33,7 +33,9 @@
 
 <script>
 import UserInfo from './info.svelte';
-import axios from 'axios';
+
+export let mode;
+export let api;
 
 let currentPassword;
 let newPassword;
@@ -42,26 +44,19 @@ let alert_success;
 let alert_warning;
 let alert_danger;
 
-const passwd = (old_pass, new_pass) => {
-    return  axios.put('/manage/api/password', {
-        currentPassword: old_pass,
-        newPassword: new_pass 
-    });
-}
-
 const update = (event) => {
     if  (( newPassword ) &&
          ( newPassword == confirmPassword ))    {
-        passwd(currentPassword, newPassword).then((ret) => {
-            console.log({ret});
-            if  ( ret.data.status == 'OK' )    {
-                alert_success = 'password update success';
-                alert_danger = undefined;
-            } else {
-                alert_success = undefined;
-                alert_danger = 'password update fail';
-            }
+        api.password(currentPassword, newPassword).then((ret) => {
+            alert_success = 'password update success';
+            alert_danger = undefined;
+        }).catch ((e) => {
+            alert_success = undefined;
+            alert_danger = 'password update fail';
         });
+    } else {
+        alert_success = undefined;
+        alert_danger = 'invalid password';
     }
 };
 

@@ -39,16 +39,19 @@
 </div>
 
 <ProfileModal
-    modal={modal}
-    profile={profile}
+    {modal}
+    {profile}
+    {api}
     on:close={close_}></ProfileModal>
 
 <script>
 import {onMount, beforeUpdate, afterUpdate, createEventDispatcher} from 'svelte';
 import Profile from './profile.svelte';
 import ProfileModal from './profile-modal.svelte';
-import axios from 'axios';
 import Modal from 'bootstrap/js/dist/modal';
+
+export let mode;
+export let api;
 
 let alert_success;
 let alert_warning;
@@ -75,12 +78,9 @@ const   close_ = (event) => {
 }
 
 const   updateProfiles = () => {
-    axios.get('/manage/api/profiles').then((ret) => {
-            let body = ret.data;
-            console.log({body});
-            if  ( body.status == 'OK' ) {
-                profiles = body.profiles;
-            }
+    api.getProfiles().then((body) => {
+            console.log('body', {body});
+            profiles = body.profiles;
         })
 }
 
@@ -95,6 +95,7 @@ afterUpdate(() => {
     }
 })
 
+console.log('mode', mode);
 
 beforeUpdate(() => {
     if  ( !profiles)    {

@@ -1,27 +1,55 @@
-<!-- svelte-ignore empty-block -->
-{#if ( args[2] == 'user' ) }
-    <User></User>
-{:else if ( args[2] == 'profile' ) }
-    <Profiles></Profiles>
-{:else}
-<div class="row">
-    <div class="col-5" style="padding:10px;">
-    </div>
-    <div class="col-3" style="padding:10px;">
-    </div>
+{#if ( user )}
+<div  class="wrapper">
+    <CommonNav bind:user={user} bind:current={current} {api}></CommonNav>
+    <SideBar bind:current={current}></SideBar>
+    <main class="content-wrapper">
+        <div class="content">
+            <div class="container-fluid">
+            {#if ( current == 'user' ) }
+                <User bind:mode={mode} {api}></User>
+            {:else if ( current == 'profile' ) }
+                <Profiles bind:mode={mode} {api}></Profiles>
+            {:else}
+                <div class="row">
+                    <div class="col-5" style="padding:10px;">
+                    </div>
+                    <div class="col-3" style="padding:10px;">
+                    </div>
+                </div>
+            {/if}
+            </div>
+        </div>
+    </main>
+    <CommonFooter></CommonFooter>
 </div>
+{:else}
+    {#if ( current == 'signup' ) }
+    <SignUp bind:user={user} bind:current={current} {api}></SignUp>
+    {:else}
+    <Login bind:user={user} bind:current={current} {api}></Login>
+    {/if}
 {/if}
 
 <script>
 import {onMount, beforeUpdate, afterUpdate, createEventDispatcher} from 'svelte';
 import User from './user/index.svelte';
 import Profiles from './profiles/index.svelte';
+import CommonNav from './common/nav.svelte';
+import SideBar from './common/sidebar.svelte';
+import Login from './login/login.svelte';
+import SignUp from './login/signup.svelte';
+import CommonFooter from './common/footer.svelte';
 
-let args;
+let current;
+let mode;
+export let user;
+export let api;
+
 beforeUpdate(() => {
 	console.log('index beforeUpdate');
-	args = location.pathname.split('/');
-    console.log('locations', args);
+    console.log('host', location.host, user);
+    mode = location.host ? 'web' : 'electron';
+    current = current || 'profile';
 });
 
 </script>

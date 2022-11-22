@@ -66,12 +66,12 @@
 </div>
 <script>
 
-import axios from 'axios';
 import {onMount, beforeUpdate, afterUpdate, createEventDispatcher} from 'svelte';
 const dispatch = createEventDispatcher();
 
 export let modal;
 export let profile;
+export let api;
 
 const clean_popup = () => {
 	dispatch('close');
@@ -87,21 +87,14 @@ afterUpdate(() => {
 
 const save = (event) => {
 	console.log("save", profile);
-	try {
-		let pr;
-		if ( profile.id  ) {
-			pr = axios.put('/manage/api/profile', profile);
-		} else {
-			pr = axios.post('/manage/api/profile', profile);
-		}
-		pr.then(() => {
-			close_();
-		});
-	} catch(e) {
+    if  ( !profile.ssl )    {
+        profile.ssl = false;
+    }
+	api.updateProfile(profile).then(() => {
+		close_();
+	}).catch((e) => {
 		console.log(e);
-		// can't save
-		//	TODO alert
-	}
+	});
 };
 
 const close_ = (event) => {
@@ -110,20 +103,9 @@ const close_ = (event) => {
 };
 
 const delete_ = (event) => {
-	try {
-		console.log('delete');
-		axios.delete('/manage/api/profile', {
-			data: {
-				id: profile.id
-			}
-		}).then((result) => {
-			clean_popup();
-		});
-	} catch(e) {
-		console.log(e);
-		// can't delete
-		//	TODO alert
-	}
+	api.deleteProfile(profile.id).then(() => {
+		clean_popup();
+	});
 }
 
 </script>
