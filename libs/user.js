@@ -2,38 +2,92 @@ const models = require('../models');
 const bcrypt = require('bcrypt');
 const SALT_ROUNDS = 10;
 
+const passport = require('passport');
+const Local = require('passport-local').Strategy;
+
+passport.use(new Local(
+	{
+		usernameField: 'user_name',
+		passwordField: 'password',
+		passReqToCallback: true,
+		session: true,
+	}, (req, user_name, password, done) => {
+		//console.log('user_name', user_name);
+		//console.log('password', password);
+		//console.log('done', done);
+
+		process.nextTick(() => {
+			auth_user(user_name, password).then(() => {
+				return done(null, {
+					user_name: user_name
+				});
+			}).catch(() => {
+				console.log('login error');
+				return done(null, false, {
+					message: 'fail'
+				});
+			});
+		});
+	}));
+
+passport.serializeUser((user, done) => {
+	//console.log('serialize:', user);
+	done(null, user);
+});
+
+passport.deserializeUser((user, done) => {
+	//console.log('deserialize:', user);
+	done(null, user);
+});
+
+/* GET users listing. */
+/*
+router.get('/login', (req, res, next) => {
+	res.render('login', { title: 'Login',
+						  msg_type: '',
+						  message: '',
+						});
+});
+*/
+
 function is_authenticated(req, res, next) {
-	//console.log(req.session);
+	console.log(req.session);
 
 	if ( req.isAuthenticated() ) {
 		return (next());
 	} else {
-		res.redirect('login');
+		res.redirect('/manage');
+		//return (next());
 	}
 }
 
 function auth_user(name, password) {
 	return new Promise((done, fail) => {
-		models.User.findOne({
-			where: {
-				name: name
-			}
-		}).then((user) => {
-			//console.log(user);
-			if ( user ) {
-				if  ( bcrypt.compareSync(password, user.hash_password) ) {
-					console.log("auth ok");
-					this.user = user;
-					done(user);
-				} else {
-					console.log("auth fail");
-					fail(user);
+		try {
+			models.User.findOne({
+				where: {
+					name: name
 				}
-			} else {
-				console.log("user none");
-				fail(null);
-			}
-		});
+			}).then((user) => {
+				//console.log(user);
+				if ( user ) {
+					if  (( password ) &&
+						 ( bcrypt.compareSync(password, user.hash_password) )) {
+						console.log("auth ok");
+						this.user = user;
+						done(user);
+					} else {
+						console.log("auth fail");
+						fail(user);
+					}
+				} else {
+					console.log("user none");
+					fail(null);
+				}
+			});
+		} catch (e) {
+			fail(null);
+		}
 	});
 }
 
@@ -96,22 +150,22 @@ class User {
 		});
 	}
 	set password(p) {
-		this.hash_password = bcrypt.hashSync(p, SALT_ROUNDS);
+		if	( p )
+			this.hash_password = bcrypt.hashSync(p, SALT_ROUNDS);
 	}
 	get password() {
 		return (this.hash_password);
 	}
 	static check(name) {
-		models.User.findOne({
+		return	models.User.findOne({
 			where: {
 				name: name },
-		}).then((user) => {
-			return (user ? true : false);
 		});
 	}
 }
 
 module.exports = {
+    Passport: passport,
 	is_authenticated: is_authenticated,
 	auth_user: auth_user,
 	User: User,
