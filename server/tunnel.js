@@ -138,8 +138,8 @@ module.exports = class {
           case  'start':
             {
                 let message_id = body.message_id;
-                console.log('start');
                 let profile_name = arg.name;
+                console.log('start', session.user, profile_name);
                 getProfile(session.user, profile_name).then((profile) => {
                     console.log('start', profile.name);
                     let port;
@@ -160,10 +160,16 @@ module.exports = class {
                 });
             }
             break;
+          case    'stop':
+            {
+                session.close(this.ptoxy);
+            }
+            break;
         }
     }
     run()   {
         let ws;
+        console.log('open ws port', this.ws_port);
         if  ( cert_path )   {
 			console.log('use SSL', cert_path);
             let server = https.createServer({

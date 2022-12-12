@@ -44,11 +44,15 @@ const   ping = (ws) => {
     })
 }
 
-const   clientOpen = (host, port, localPort) => {
+const   clientOpen = (host, port, localPort, secure) => {
     let ws;
     
     try {
-        ws = new WebSocket(`wss://${host}:${port}`);
+        if  ( secure )  {
+            ws = new WebSocket(`wss://${host}:${port}`);
+        } else {
+            ws = new WebSocket(`ws://${host}:${port}`);
+        }
         console.log('open');
         ws.sequence = 0;
         ws.Close = () => {

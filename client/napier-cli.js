@@ -10,9 +10,10 @@ const PORT = 8001;
 const   parseOptions = () => {
     program.option  ('--config <config filename>', 'config file');
     program.option  ('--user <user>',              'user name');
-    program.option  ("--pass <pass>",              "password");
+    program.option  ("--password <password>",              "password");
     program.option  ('--host <host>',              'tunnel host');
     program.option  ('--port <port>',              'tunnel port');
+    program.option  ('--secure',                   'secure connection');
     program.option  ('--local-port <localPort>',   'local port');
     program.option  ('--re-connect',               're-connect server');
     program.option  ('--web-server',               'start web server');
@@ -45,7 +46,7 @@ const   parseOptions = () => {
     opts['reConnect'] ||= false;
     opts['webServer'] ||= false;
     opts['index'] ||= false;
-    //console.log({opts}, args);
+    console.log({opts}, args);
 
     return  { opts: opts, profile: args[0]};
 }
@@ -54,14 +55,14 @@ let closed = true;
 const   tunnel = (opts, profile) => {
     closed = false;
     //console.log('main');
-    let ws = clientOpen(opts.host, opts.port, opts.localPort);
+    let ws = clientOpen(opts.host, opts.port, opts.localPort, opts.secure);
     ws.on('open', () => {
         ws.Api('auth', {
                 user: opts.user,
-                password:  opts.pass
+                password:  opts.password
             },
             (body) => {
-                //console.log('body', body);
+                console.log('body', body);
                 if  ( body.status == 'OK')  {
                     session_id = body.id;
                     ws.Api('start', {
