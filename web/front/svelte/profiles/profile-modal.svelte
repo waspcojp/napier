@@ -36,19 +36,19 @@
                     <div class="row mb-3">
                         <label for="key" class="col-sm-2 col-form-label">Private key</label>
                         <div class="col-sm-10">
-                            <textarea class="form-control monospace" bind:value={profile.key} rows="10"></textarea>
+                            <textarea class="form-control monospace" bind:value={profile.key} rows="5"></textarea>
                         </div>
                     </div>
                     <div class="row mb-3">
                         <label for="key" class="col-sm-2 col-form-label">Certificate</label>
                         <div class="col-sm-10">
-                            <textarea class="form-control monospace" bind:value={profile.cert} rows="10"></textarea>
+                            <textarea class="form-control monospace" bind:value={profile.cert} rows="5"></textarea>
                         </div>
                     </div>
                     <div class="row mb-3">
                         <label for="key" class="col-sm-2 col-form-label">Certificate</label>
                         <div class="col-sm-10">
-                            <textarea class="form-control monospace" bind:value={profile.ca} rows="10"></textarea>
+                            <textarea class="form-control monospace" bind:value={profile.ca} rows="5"></textarea>
                         </div>
                     </div>
                 </div>
@@ -71,7 +71,6 @@ const dispatch = createEventDispatcher();
 
 export let modal;
 export let profile;
-export let api;
 
 const clean_popup = () => {
 	dispatch('close');
@@ -87,6 +86,14 @@ afterUpdate(() => {
 
 const save = (event) => {
 	console.log("save", profile);
+    if  (( !profile.key ) ||
+         ( !profile.key.match(/^---/) ))    {
+        profile.key = undefined;
+    }
+    if  (( !profile.cert ) ||
+         ( !profile.cert.match(/^---/) ))    {
+        profile.cert = undefined;
+    }
     if  ( !profile.ssl )    {
         profile.ssl = false;
     }

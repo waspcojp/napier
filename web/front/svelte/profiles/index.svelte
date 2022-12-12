@@ -1,26 +1,4 @@
-<div class="row">
-{#if alert_success}
-    <div class="alert alert-success" role="alert">
-        <button type="button" class="btn-close" aria-label="Close"
-            on:click="{() => {alert_success = undefined}}"></button>
-        <strong>{alert_success}</strong>
-    </div>
-{/if}
-{#if alert_warning}
-    <div class="alert alert-warning fade show" role="alert">
-        <button type="button" class="btn-close" aria-label="Close"
-            on:click="{() => {alert_warning = undefined}}"></button>
-        <stroing>{alert_warning}</stroing>
-    </div>
-{/if}
-{#if alert_danger}
-    <div class="alert alert-danger fade show" role="alert">
-        <button type="button" class="btn-close" aria-label="Close"
-            on:click="{() => {alert_danger = undefined}}"></button>
-        <strong>{alert_danger}</strong>
-    </div>
-{/if}
-</div>
+<Alert bind:alert={alert} {alert_level}></Alert>
 <div class="row justify-content-end">
     <div class="col-1" style="padding:10px;">
         <button type="button" class="btn btn-primary"
@@ -41,7 +19,6 @@
 <ProfileModal
     {modal}
     {profile}
-    {api}
     on:close={close_}></ProfileModal>
 
 <script>
@@ -49,13 +26,12 @@ import {onMount, beforeUpdate, afterUpdate, createEventDispatcher} from 'svelte'
 import Profile from './profile.svelte';
 import ProfileModal from './profile-modal.svelte';
 import Modal from 'bootstrap/js/dist/modal';
+import Alert from '../components/alert.svelte';
 
 export let mode;
-export let api;
+let alert;
+let alert_level;
 
-let alert_success;
-let alert_warning;
-let alert_danger;
 let profiles;
 let modal;
 const _profile = {
