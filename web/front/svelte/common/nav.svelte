@@ -36,7 +36,6 @@ import {onMount, beforeUpdate, afterUpdate, createEventDispatcher} from 'svelte'
 
 export	let	user;
 export let current;
-export let api;
 
 const Logout = () => {
 	try	{

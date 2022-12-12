@@ -1,26 +1,4 @@
-<div class="row">
-{#if alert_success}
-    <div class="alert alert-success" role="alert">
-        <button type="button" class="btn-close" aria-label="Close"
-            on:click="{() => {alert_success = undefined}}"></button>
-        <strong>{alert_success}</strong>
-        </div>
-{/if}
-{#if alert_warning}
-    <div class="alert alert-warning fade show" role="alert">
-        <button type="button" class="btn-close" aria-label="Close"
-            on:click="{() => {alert_warning = undefined}}"></button>
-        <stroing>{alert_warning}</stroing>
-    </div>
-{/if}
-{#if alert_danger}
-    <div class="alert alert-danger fade show" role="alert">
-        <button type="button" class="btn-close" aria-label="Close"
-            on:click="{() => {alert_danger = undefined}}"></button>
-        <strong>{alert_danger}</strong>
-    </div>
-{/if}
-</div>
+<Alert bind:alert={alert} {alert_level}></Alert>
 <div class="row">
     <div class="col-6" style="padding:10px;">
         <UserInfo
@@ -33,30 +11,27 @@
 
 <script>
 import UserInfo from './info.svelte';
-
-export let mode;
-export let api;
+import Alert from '../components/alert.svelte';
 
 let currentPassword;
 let newPassword;
 let confirmPassword;
-let alert_success;
-let alert_warning;
-let alert_danger;
+let alert;
+let alert_level;
 
 const update = (event) => {
     if  (( newPassword ) &&
          ( newPassword == confirmPassword ))    {
         api.password(currentPassword, newPassword).then((ret) => {
-            alert_success = 'password update success';
-            alert_danger = undefined;
+            alert = 'password update success';
+            alert_level = 'alert-success';
         }).catch ((e) => {
-            alert_success = undefined;
-            alert_danger = 'password update fail';
+            alert = 'password update fail';
+            alert_level = 'alert-danger';
         });
     } else {
-        alert_success = undefined;
-        alert_danger = 'invalid password';
+        alert = 'invalid password';
+        alert_level = 'alert-danger';
     }
 };
 

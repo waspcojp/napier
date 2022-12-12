@@ -68,11 +68,12 @@ const login = (user_name, password) => {
         axios.post('/manage/api/login', {
             user_name: user_name,
             password: password
-        }).then((ret) => {
-            if  ( ret.data.result == 'OK' ) {
+        }).then((res) => {
+            console.log('login', res);
+            if  ( res.data.result == 'OK' ) {
                 resolve();
             } else {
-                reject(ret.data.message);
+                reject(res.data.message);
             }
         }).catch((e) => {
             console.log(e);
@@ -137,11 +138,12 @@ const api = {
     signup: signup,
     password: password
 }
+window.api = api;
+
 const index = new Index({
     target: target,
     props: {
-        user: user,
-        api: api
+        user: user
     }
 });
 

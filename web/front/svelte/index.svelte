@@ -1,14 +1,14 @@
 {#if ( user )}
 <div  class="wrapper">
-    <CommonNav bind:user={user} bind:current={current} {api}></CommonNav>
+    <CommonNav bind:user={user} bind:current={current}></CommonNav>
     <SideBar bind:current={current}></SideBar>
     <main class="content-wrapper">
         <div class="content">
             <div class="container-fluid">
             {#if ( current == 'user' ) }
-                <User bind:mode={mode} {api}></User>
+                <User bind:mode={mode}></User>
             {:else if ( current == 'profile' ) }
-                <Profiles bind:mode={mode} {api}></Profiles>
+                <Profiles bind:mode={mode}></Profiles>
             {:else}
                 <div class="row">
                     <div class="col-5" style="padding:10px;">
@@ -24,9 +24,9 @@
 </div>
 {:else}
     {#if ( current == 'signup' ) }
-    <SignUp bind:user={user} bind:current={current} {api}></SignUp>
+    <SignUp bind:user={user} bind:current={current}></SignUp>
     {:else}
-    <Login bind:user={user} bind:current={current} {api}></Login>
+    <Login bind:user={user} bind:current={current}></Login>
     {/if}
 {/if}
 
@@ -43,7 +43,7 @@ import CommonFooter from './common/footer.svelte';
 let current;
 let mode;
 export let user;
-export let api;
+
 
 beforeUpdate(() => {
 	console.log('index beforeUpdate');
