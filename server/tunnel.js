@@ -183,6 +183,7 @@ module.exports = class {
             });
         }
         ws.on('connection', (socket) => {
+            console.log('connection');
             let session = new Session(socket);
             socket.on('message', (message) => {
                 let recv = TunnelConnection.decodeMessage(message);
