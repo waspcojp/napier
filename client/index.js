@@ -48,12 +48,14 @@ const   clientOpen = (host, port, localPort, secure) => {
     let ws;
     
     try {
+        let ws_uri;
         if  ( secure )  {
-            ws = new WebSocket(`wss://${host}:${port}`);
+            ws_uri = `wss://${host}:${port}`;
         } else {
-            ws = new WebSocket(`ws://${host}:${port}`);
+            ws_uri = `ws://${host}:${port}`;
         }
-        console.log('open');
+        ws = new WebSocket(ws_uri);
+        console.log('open', ws_uri);
         ws.sequence = 0;
         ws.Close = () => {
             //console.log('close');

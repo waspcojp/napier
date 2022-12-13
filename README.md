@@ -152,3 +152,21 @@ We've created a [demo site](https://www.napier-net.com), so you can try it witho
 You can try it by starting the client after accessing the site and registering as a user.
 
 Please note that the site of this URL will be released as an official service in the future, but user information will not be taken over at that time.
+
+## Commentary
+
+### About certificates
+
+The files to be placed in certs are as follows.
+
+* `${MY_DOMAIN}-cert.pem`
+
+  It's called a certificate. This uses the one containing the intermediate certificate. For Let's Encrypt, it's `fullchain.pem`.
+
+  Please note that if you use a certificate that does not include an intermediate certificate, it will cause a situation where "there is no problem with the web, but the web socket cannot be connected".
+
+* `${MY_DOMAIN}.pem`
+
+  This is the private key.
+
+Note that if a route containing a certificate is started at runtime, a certificate pair named `{number}-cert.pem`, `{number}.pem` will be placed in this directory. Since these create an entity from the database each time they start, there is no problem even if you delete them if you think they are in the way.
