@@ -182,7 +182,6 @@ module.exports = class {
                 port: this.ws_port
             });
         }
-        console.log('ws', ws);
         ws.on('connection', (socket) => {
             console.log('connection');
             let session = new Session(socket);
