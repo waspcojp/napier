@@ -17,8 +17,24 @@
     "appId": "com.napier-net.electron",
     "productName": "napier",
     "files": [
-      "electron/**/*"
-    ]
+      "package.json",
+      "electron/main.js",
+      "electron/renderer.js",
+      "electron/proxy.js",
+      "electron/preload.js",
+      "electron/api.js",
+      "electron/index.html"
+    ],
+    "mac":{
+      "target": "dmg"
+    },
+    "win":{
+      "target": "nsis"
+    },
+    "nsis":{
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    }
   },
   "author": "Masami Ogoshi",
   "license": "AGPL-3.0-or-later",
