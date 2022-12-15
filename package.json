@@ -18,12 +18,14 @@
     "productName": "napier",
     "files": [
       "package.json",
+      "packag-locke.json",
       "electron/main.js",
       "electron/renderer.js",
       "electron/proxy.js",
       "electron/preload.js",
       "electron/api.js",
-      "electron/index.html"
+      "electron/index.html",
+      "client/index.js"
     ],
     "mac":{
       "target": "dmg"
