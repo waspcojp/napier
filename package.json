@@ -27,7 +27,7 @@
       "electron/index.html",
       "client/index.js",
       "libs/message.js",
-      "node_modules/touch-cookie"
+      "node_modules/tough-cookie"
     ],
     "mac":{
       "target": "dmg"
