@@ -1,0 +1,74 @@
+//
+// Core: Brand
+//
+
+// @include brand-variant($lte-sidebar-dark-bg, $lte-sidebar-dark-color);
+
+.brand-container {
+  display: grid;
+  grid-template-areas: "brand-link pushmenu";
+  justify-content: space-between;
+  font-size: $navbar-brand-font-size;
+  transition: width $lte-transition-speed $lte-transition-fn;
+  padding: $lte-brand-link-padding-y $lte-sidebar-padding-x;
+  white-space: nowrap;
+  overflow: hidden;
+
+  .brand-link {
+    grid-area: brand-link;
+
+    &:hover {
+      text-decoration: none;
+    }
+
+    .brand-image {
+      float: left;
+      line-height: .8;
+      margin-left: .8rem;
+      margin-right: .5rem;
+      margin-top: -3px;
+      max-height: 33px;
+      width: auto;
+    }
+  }
+
+  .pushmenu {
+    grid-area: pushmenu;
+  }
+
+  .sidebar-bg-dark & {
+    border-bottom: $lte-brand-link-border-buttom solid $gray-700;
+
+    .brand-link,
+    .pushmenu {
+      color: rgba($white, .8);
+
+      &:hover {
+        color: $white;
+      }
+    }
+  }
+
+  .sidebar-bg-light & {
+    border-bottom: $lte-brand-link-border-buttom solid $gray-300;
+
+    .brand-link,
+    .pushmenu {
+      color: rgba($black, .8);
+
+      &:hover {
+        color: $black;
+      }
+    }
+  }
+}
+
+.sidebar-collapse:not(.sidebar-is-hover) {
+  .brand-container {
+    justify-content: center;
+
+    .brand-link {
+      width: 0;
+    }
+  }
+}
