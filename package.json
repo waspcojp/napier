@@ -2,20 +2,29 @@
   "name": "napier",
   "version": "0.0.0",
   "description": "simple web proxy service",
-  "main": "server/index.js",
+  "main": "electron/main.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build-production": "webpack -c --mode production",
-    "build": "webpack -c webpack.config.js --mode development",
+    "webbuild": "webpack -c webpack.config.js --mode development",
     "watch": "NODE_OPTIONS=--openssl-legacy-provider webpack -c webpack.config.js --watch",
     "server": "node ./server/index.js",
     "cli": "node ./client/napier-cli.js",
-    "electron": "electron electron/main.js"
+    "electron": "electron electron/main.js",
+    "electron-build": "electron-builder"
+  },
+  "build": {
+    "appId": "com.napier-net.electron",
+    "productName": "napier",
+    "files": [
+      "electron/**/*"
+    ]
   },
   "author": "Masami Ogoshi",
   "license": "AGPL-3.0-or-later",
   "dependencies": {
     "@fortawesome/fontawesome-free": "^6.1.2",
+    "assert": "^2.0.0",
     "axios": "^0.27.2",
     "axios-cookiejar-support": "^4.0.3",
     "bcrypt": "^5.0.1",
@@ -25,6 +34,7 @@
     "connect-multiparty": "^2.2.0",
     "cookie-parser": "^1.4.6",
     "cors": "^2.8.5",
+    "electron-squirrel-startup": "^1.0.0",
     "express": "^4.18.1",
     "express-session": "^1.17.3",
     "file-loader": "^6.2.0",
@@ -61,9 +71,11 @@
     "ws": "^8.8.0"
   },
   "devDependencies": {
+    "@electron/get": "^2.0.2",
     "css-loader": "^6.7.1",
     "electrode-server": "^3.3.0",
-    "electron": "^19.0.8",
+    "electron": "^22.0.0",
+    "electron-builder": "^22.10.3",
     "sequelize-cli": "^6.4.1",
     "style-loader": "^3.3.1",
     "webpack": "^5.74.0",
