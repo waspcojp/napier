@@ -11,7 +11,7 @@
     "server": "node ./server/index.js",
     "cli": "node ./client/napier-cli.js",
     "electron": "electron electron/main.js",
-    "electron-build": "electron-builder"
+    "electron-build-win": "electron-builder --win --x64"
   },
   "build": {
     "appId": "com.napier-net.electron",
