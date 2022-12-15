@@ -25,7 +25,8 @@
       "electron/preload.js",
       "electron/api.js",
       "electron/index.html",
-      "client/index.js"
+      "client/index.js",
+      "libs/message.js"
     ],
     "mac":{
       "target": "dmg"
