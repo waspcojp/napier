@@ -13,10 +13,12 @@ const login = (user_name, password) => {
                 resolve();
                 console.log('env', env);
             } else {
+                env.user = undefined;
                 reject(res.message);
             }
         }).catch((e) => {
             console.log(e);
+            env.user = undefined;
             reject('other error');
         });
     });

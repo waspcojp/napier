@@ -10,10 +10,10 @@ module.exports = {
 	mode: MODE,
 	context: path.resolve(__dirname, 'web/front/javascripts'),
     entry: {
-		//login: './login.js',
 		index: './index.js',
 		common: './common.js',
-		renderer: '../../../electron/renderer.js'
+		renderer: '../../../electron/renderer.js',
+		electron: '../../../electron/electron.js'
 	},
     output: {
         path: path.resolve(__dirname, 'web/dist'),

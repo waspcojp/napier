@@ -13,14 +13,14 @@
             <ul class="nav nav-pills nav-sidebar flex-column">
                 {#if user_name}
 			    <li class="nav-item">
-				    <a class={(current == 'profile')  ? 'nav-link active': 'nav-link'}
+				    <a href='#' class={(current == 'profile')  ? 'nav-link active': 'nav-link'}
                             on:click="{() => {current = 'profile'}}">
                         <i class="nav-icon fas fa-circle"></i>
                         プロファイル
                     </a>
 			    </li>
 			    <li class="nav-item">
-    				<a class={(current == 'user' )  ? 'nav-link active': 'nav-link'}
+    				<a href='#' class={(current == 'user' )  ? 'nav-link active': 'nav-link'}
                             on:click="{() => {current = 'user'}}">
                         <i class="nav-icon fas fa-circle"></i>
                         ユーザ情報
@@ -28,7 +28,7 @@
 			    </li>
                 {/if}
 			    <li class="nav-item">
-    				<a class={(current == 'config' )  ? 'nav-link active': 'nav-link'}
+    				<a href='#' class={(current == 'config' )  ? 'nav-link active': 'nav-link'}
                             on:click="{() => {current = 'config'}}">
                         <i class="nav-icon fas fa-circle"></i>
                         サーバ設定
@@ -40,8 +40,6 @@
 </aside>
 
 <script>
-import {onMount, beforeUpdate, afterUpdate, createEventDispatcher} from 'svelte';
-
 export let current;
 export let user_name;
 

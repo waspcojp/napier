@@ -3,6 +3,8 @@
   "version": "0.0.0",
   "description": "simple web proxy service",
   "main": "electron/main.js",
+  "author": "Masami Ogoshi",
+  "homepage": "https://github.com/waspcojp/napier",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build-production": "webpack -c --mode production",
@@ -10,37 +12,8 @@
     "watch": "NODE_OPTIONS=--openssl-legacy-provider webpack -c webpack.config.js --watch",
     "server": "node ./server/index.js",
     "cli": "node ./client/napier-cli.js",
-    "electron": "electron electron/main.js",
-    "electron-build-win": "electron-builder --win --x64"
+    "electron": "electron electron/main.js"
   },
-  "build": {
-    "appId": "com.napier-net.electron",
-    "productName": "napier",
-    "files": [
-      "package.json",
-      "packag-locke.json",
-      "electron/main.js",
-      "electron/renderer.js",
-      "electron/proxy.js",
-      "electron/preload.js",
-      "electron/api.js",
-      "electron/index.html",
-      "client/index.js",
-      "libs/message.js",
-      "node_modules/tough-cookie"
-    ],
-    "mac":{
-      "target": "dmg"
-    },
-    "win":{
-      "target": "nsis"
-    },
-    "nsis":{
-      "oneClick": false,
-      "allowToChangeInstallationDirectory": true
-    }
-  },
-  "author": "Masami Ogoshi",
   "license": "AGPL-3.0-or-later",
   "dependencies": {
     "@fortawesome/fontawesome-free": "^6.1.2",
@@ -54,6 +27,7 @@
     "connect-multiparty": "^2.2.0",
     "cookie-parser": "^1.4.6",
     "cors": "^2.8.5",
+    "deasync": "^0.1.28",
     "electron-squirrel-startup": "^1.0.0",
     "express": "^4.18.1",
     "express-session": "^1.17.3",
@@ -71,7 +45,9 @@
     "markdown-it-sub": "^1.0.0",
     "markdown-it-sup": "^1.0.0",
     "mime": "^3.0.0",
+    "minimatch": "^5.1.2",
     "morgan": "^1.10.0",
+    "node-gyp": "^9.3.1",
     "node-rsa": "^1.1.1",
     "node-uuid": "^1.4.8",
     "passport": "^0.6.0",
@@ -87,6 +63,7 @@
     "svelte-loader": "^3.1.3",
     "svelte-preprocess": "^4.10.7",
     "svgo-loader": "^3.0.1",
+    "tough-cookie": "^4.1.2",
     "url-loader": "^4.1.1",
     "ws": "^8.8.0"
   },
@@ -96,6 +73,7 @@
     "electrode-server": "^3.3.0",
     "electron": "^22.0.0",
     "electron-builder": "^22.10.3",
+    "electron-packager": "^17.1.1",
     "sequelize-cli": "^6.4.1",
     "style-loader": "^3.3.1",
     "webpack": "^5.74.0",

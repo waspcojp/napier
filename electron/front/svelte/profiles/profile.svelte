@@ -24,7 +24,7 @@ export  let profile;
 
 import {onMount, beforeUpdate, afterUpdate, createEventDispatcher} from 'svelte';
 const dispatch = createEventDispatcher();
-import ProfileCard from '../../../../web/front/svelte/profiles/profile-card.svelte';
+import ProfileCard from './profile-card.svelte';
 
 let button = true;
 

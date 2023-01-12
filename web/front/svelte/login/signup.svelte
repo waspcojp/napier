@@ -39,7 +39,6 @@
     {/if}
 </div>
 <script>
-export let user;
 export let current;
 
 let user_name;

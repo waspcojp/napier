@@ -47,7 +47,6 @@ export let user;
 
 beforeUpdate(() => {
 	console.log('index beforeUpdate');
-    console.log('host', location.host, user);
     mode = location.host ? 'web' : 'electron';
     current = current || 'profile';
 });

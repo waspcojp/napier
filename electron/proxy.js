@@ -1,4 +1,4 @@
-const {clientOpen} = require('../client/index');
+const {clientOpen} = require('./client/index.js');
 
 let closed = true;
 

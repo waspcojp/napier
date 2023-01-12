@@ -24,8 +24,8 @@
 import {onMount, beforeUpdate, afterUpdate, createEventDispatcher} from 'svelte';
 import Profile from './profile.svelte';
 import Modal from 'bootstrap/js/dist/modal';
-import ProfileModal from '../../../../web/front/svelte/profiles/profile-modal.svelte';
-import Alert from '../../../../web/front/svelte/components/alert.svelte';
+import ProfileModal from './profile-modal.svelte';
+import Alert from '../components/alert.svelte';
 
 let alert;
 let alert_level;

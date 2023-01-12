@@ -16,14 +16,14 @@
 				<ul class="dropdown-menu"
 						aria-labelledby="user_menu">
 					<li>
-						<a on:click|preventDefault={Logout} href="#" class="dropdown-item">
+						<a on:click|preventDefault={Logout} class="dropdown-item">
 							Sign out
 						</a>
 					</li>
 				</ul>
 			</li>
 			<li class="nav-item">
-				<a class="nav-link" data-lte-toggle="sidebar-full" href="#" role="button">
+				<a class="nav-link" data-lte-toggle="sidebar-full" role="button">
 					<i class="fas fa-expand-arrows-alt"></i>
 				</a>
 			</li>

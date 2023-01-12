@@ -31,24 +31,25 @@
 </div>
 
 <script>
-import {onMount, beforeUpdate, afterUpdate, createEventDispatcher} from 'svelte';
-import User from '../../../web/front/svelte/user/index.svelte';
+import User from './user/index.svelte';
 import Profiles from './profiles/index.svelte';
 import CommonNav from './common/nav.svelte';
 import SideBar from './common/sidebar.svelte';
-import Config from './config/index.svelte';
-import CommonFooter from '../../../web/front/svelte/common/footer.svelte';
+import Config from './config/config.svelte';
+import CommonFooter from './common/footer.svelte';
 
-let current;
-let user_name;
+let user_name = env.user;
+let current = ( user_name ? 'profile' : 'config');
 
 const loggedIn = () => {
     console.log('logged in')
 }
-
-onMount(() => {
-    user_name = user_name || env.user;
-    current = current || ( user_name ? 'profile' : 'config');
+/*
+import {onMount, beforeUpdate, afterUpdate, createEventDispatcher} from 'svelte';
+beforeUpdate(() => {
 });
-
+onMount(() => {
+	console.log('index beforeUpdate');
+});
+*/
 </script>
