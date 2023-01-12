@@ -1,0 +1,116 @@
+{
+  "name": "napier",
+  "version": "0.0.0",
+  "description": "simple web proxy service",
+  "main": "main.js",
+  "author": "Masami Ogoshi",
+  "homepage": "https://github.com/waspcojp/napier",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build-production": "webpack -c --mode production",
+    "webbuild": "webpack -c webpack.config.js --mode development",
+    "watch": "NODE_OPTIONS=--openssl-legacy-provider webpack -c webpack.config.js --watch",
+    "server": "node ./server/index.js",
+    "cli": "node ./client/napier-cli.js",
+    "electron-build:win": "electron-builder --win --x64",
+    "electron-build:linux": "electron-builder --linux --arm64"
+  },
+  "build": {
+    "appId": "com.napier-net.electron",
+    "productName": "napier",
+    "files": [
+      "main.js",
+      "index.html",
+      "package.json",
+      "renderer.js",
+      "proxy.js",
+      "preload.js",
+      "api.js",
+      "./client/index.js",
+      "./libs/message.js",
+      "./public/logo.png",
+      "./public/circle4686.png",
+      "./public/bootstrap-icons/font/bootstrap-icons.css",
+      "./public/stylesheets/style.css",
+      "./dist/renderer.js",
+      "./dist/electron.js",
+      "./dist/41c0f706d8ce93933771.woff2",
+      "./dist/be7cc766f09a5d908183.ttf"
+    ],
+    "extraMetadata": {
+      "main": "main.js"
+    },
+    "directories": {
+      "output": "release"
+    },
+    "mac": {
+      "target": "dmg"
+    },
+    "win": {
+      "target": "nsis"
+    },
+    "linux": {
+      "target": "deb",
+      "maintainer": "Masami Ogoshi <ogochan@wasp.co.jp>",
+      "asar": false
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    }
+  },
+  "license": "AGPL-3.0-or-later",
+  "dependencies": {
+    "@fortawesome/fontawesome-free": "^6.1.2",
+    "assert": "^2.0.0",
+    "axios": "^0.27.2",
+    "axios-cookiejar-support": "^4.0.3",
+    "bcrypt": "^5.0.1",
+    "bootstrap": "^5.2.0",
+    "bootstrap-icons": "^1.9.1",
+    "commander": "^9.4.0",
+    "connect-multiparty": "^2.2.0",
+    "cookie-parser": "^1.4.6",
+    "cors": "^2.8.5",
+    "electron-squirrel-startup": "^1.0.0",
+    "file-loader": "^6.2.0",
+    "markdown-it": "^12.3.2",
+    "markdown-it-abbr": "^1.0.4",
+    "markdown-it-container": "^2.0.0",
+    "markdown-it-deflist": "^2.0.3",
+    "markdown-it-emoji": "^1.4.0",
+    "markdown-it-footnote": "^3.0.2",
+    "markdown-it-ins": "^2.0.0",
+    "markdown-it-mark": "^2.0.0",
+    "markdown-it-prism": "^2.2.1",
+    "markdown-it-replace-link": "^1.1.0",
+    "markdown-it-sub": "^1.0.0",
+    "markdown-it-sup": "^1.0.0",
+    "mime": "^3.0.0",
+    "morgan": "^1.10.0",
+    "node-rsa": "^1.1.1",
+    "node-uuid": "^1.4.8",
+    "prismjs": "^1.25.0",
+    "querystring": "^0.2.1",
+    "serve-handler": "^6.1.3",
+    "sprightly": "^1.0.3",
+    "svelte-loader": "^3.1.3",
+    "svelte-preprocess": "^4.10.7",
+    "svgo-loader": "^3.0.1",
+    "tough-cookie": "^4.1.2",
+    "url-loader": "^4.1.1",
+    "ws": "^8.8.0"
+  },
+  "devDependencies": {
+    "@electron/get": "^2.0.2",
+    "css-loader": "^6.7.1",
+    "electrode-server": "^3.3.0",
+    "electron": "^22.0.0",
+    "electron-builder": "^22.10.3",
+    "sequelize-cli": "^6.4.1",
+    "style-loader": "^3.3.1",
+    "webpack": "^5.74.0",
+    "webpack-cli": "^4.10.0",
+    "webpack-dev-server": "^4.9.3"
+  }
+}
