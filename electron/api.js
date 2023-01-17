@@ -113,8 +113,10 @@ const getProfiles = (ev, args)  => {
                 for ( profile of profiles ) {
                     if  ( !env.profiles[profile.name] ) {
                         profile.localPort = env.localPort;
+                        profile.start = false;
                     } else {
                         profile.localPort = env.profiles[profile.name].localPort;
+                        profile.start = env.profiles[profile.name].start;
                     }
                 }
                 //console.log('profiles', env.profiles);
