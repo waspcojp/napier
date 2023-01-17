@@ -26,7 +26,7 @@ import Modal from 'bootstrap/js/dist/modal';
 import SignUp from './signup.svelte';
 import Server from './server.svelte';
 import Login from './login-modal.svelte';
-import Alert from '../../../../web/front/svelte/components/alert.svelte';
+import Alert from '../components/alert.svelte';
 
 export let user_name;
 
