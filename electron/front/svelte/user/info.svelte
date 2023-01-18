@@ -30,7 +30,6 @@
     </div>
 </div>
 <script>
-
 export  let currentPassword;
 export  let newPassword;
 export  let confirmPassword;
