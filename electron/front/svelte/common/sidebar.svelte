@@ -34,6 +34,13 @@
                         サーバ設定
                     </a>
 			    </li>
+			    <li class="nav-item">
+    				<a href='#' class={(current == 'appli' )  ? 'nav-link active': 'nav-link'}
+                            on:click="{() => {current = 'appli'}}">
+                        <i class="nav-icon fas fa-circle"></i>
+                        アプリケーション設定
+                    </a>
+			    </li>
             </ul>
         </nav>
     </div>
