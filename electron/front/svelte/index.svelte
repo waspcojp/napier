@@ -16,6 +16,9 @@
                     bind:user_name={user_name}
                     on:login={loggedIn}
                     ></Config>
+            {:else if ( current == 'web-server') }
+                <WebServer
+                    ></WebServer>
             {:else}
                 <div class="row">
                     <div class="col-5" style="padding:10px;">
@@ -37,6 +40,7 @@ import CommonNav from './common/nav.svelte';
 import SideBar from './common/sidebar.svelte';
 import Config from './config/config.svelte';
 import CommonFooter from './common/footer.svelte';
+import WebServer from './web-server/index.svelte';
 
 let user_name = env.user;
 let current = ( user_name ? 'profile' : 'config');
@@ -44,12 +48,4 @@ let current = ( user_name ? 'profile' : 'config');
 const loggedIn = () => {
     console.log('logged in')
 }
-/*
-import {onMount, beforeUpdate, afterUpdate, createEventDispatcher} from 'svelte';
-beforeUpdate(() => {
-});
-onMount(() => {
-	console.log('index beforeUpdate');
-});
-*/
 </script>

@@ -28,7 +28,6 @@ import ProfileModal from './profile-modal.svelte';
 import Modal from 'bootstrap/js/dist/modal';
 import Alert from '../components/alert.svelte';
 
-export let mode;
 let alert;
 let alert_level;
 
@@ -70,8 +69,6 @@ afterUpdate(() => {
         openModal = false;
     }
 })
-
-console.log('mode', mode);
 
 beforeUpdate(() => {
     if  ( !profiles)    {

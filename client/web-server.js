@@ -849,19 +849,45 @@ console.log('read:', absolutePath);
 	stream.pipe(response);
 };
 
+let server = null;
 
-module.exports = (port, root, option) => {
+const start = (port, root, option) => {
 	option ||= {};
 	option['public'] = root;
 	console.log({option});
 
-	let server = http.createServer((req, res) => {
-		//console.log('req', req.method, req.url, )
-		return	handler(req, res, option, {
+	if	( !server )	{
+		server = http.createServer((req, res) => {
+			//console.log('req', req.method, req.url, )
+			return	handler(req, res, option, {
+			});
 		});
-	});
 
-	server.listen(port, () => {
-		console.log('start web server');
+		server.listen(port, () => {
+			console.log('start web server');
+		});
+	}
+}
+const stop = () => {
+	return new Promise((resolve, reject) => {
+		try	{
+			server.close(() => {
+				resolve();
+				server = null;
+				console.log('web server stoppped');
+			});
+		} catch {
+			reject();
+		}
 	});
 }
+
+const check = () => {
+	return	(server ? server.listening : false);
+}
+
+module.exports = {
+	start: start,
+	stop: stop,
+	check: check
+};

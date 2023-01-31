@@ -135,6 +135,9 @@ const setConf = (conf) => {
             if  ( conf.profiles )   {
                 env.profiles = conf.profiles;
             }
+            if  ( conf.webServer )  {
+                env.webServer = conf.webServer;
+            }
             ipcRenderer.invoke('env:set', env).then((res) => {
                 resolve(env);
             });
@@ -174,6 +177,55 @@ const stopProxy = (profile) => {
     });
 }
 
+const checkProxy = (profile) => {
+    return new Promise((resolve, reject) => {
+        ipcRenderer.invoke('proxy:check', {
+            profile: profile
+        }).then((res) => {
+            console.log({res});
+            resolve(res);
+        });
+    });
+}
+
+const openDialog = () => {
+    return new Promise((resolve, reject) => {
+        ipcRenderer.invoke('dialog:open').then((res) => {
+            //console.log('path', res.filePaths[0]);
+            resolve(res.filePaths[0]);
+        });
+    });
+}
+
+const startWebServer = () => {
+    return new Promise((resolve, reject) => {
+        ipcRenderer.invoke('web-server:start').then((res) => {
+            resolve();
+        }).catch((e) => {
+            reject();
+        })
+    })
+}
+const stopWebServer = () => {
+    return new Promise((resolve, reject) => {
+        ipcRenderer.invoke('web-server:stop').then((res) => {
+            resolve();
+        }).catch((e) => {
+            reject();
+        })
+    })
+}
+const checkWebServer = () => {
+    return new Promise((resolve, reject) => {
+        ipcRenderer.invoke('web-server:check').then((res) => {
+            console.log({res});
+            resolve(res);
+        }).catch((e) => {
+            reject();
+        })
+    })
+}
+
 const init = () => {
     //console.log('env', env);
     getConf().then((_env) => {
@@ -194,7 +246,12 @@ const init = () => {
             setConf: setConf,
             getConf: getConf,
             startProxy: startProxy,
-            stopProxy: stopProxy
+            stopProxy: stopProxy,
+            checkProxy: checkProxy,
+            openDialog: openDialog,
+            startWebServer: startWebServer,
+            stopWebServer: stopWebServer,
+            checkWebServer: checkWebServer
         });
     });
 }

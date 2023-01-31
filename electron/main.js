@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain } = require("electron");
+const { app, BrowserWindow, ipcMain, dialog } = require("electron");
 const path = require("path");
 
 const api = require('./api');
@@ -21,6 +21,22 @@ const createWindow = () => {
     });
 };
 
+
+const dialogOpen = (ev, args) => {
+    return new Promise((resolve, reject) => {
+        dialog.showOpenDialog(null, {
+            properties: ['openDirectory'],
+            title: 'Document root',
+            defaultPath: '.'
+        }).then((result) => {
+            resolve(result);
+        }).catch((e) => {
+            reject(e);
+        });
+    });
+}
+
+
 app.whenReady().then(() => {
     createWindow();
 
@@ -41,6 +57,11 @@ app.whenReady().then(() => {
     ipcMain.handle('profile:delete', api.deleteProfile);
     ipcMain.handle('proxy:start', api.startProxy);
     ipcMain.handle('proxy:stop', api.stopProxy);
+    ipcMain.handle('proxy:check', api.checkProxy);
+    ipcMain.handle('dialog:open', dialogOpen);
+    ipcMain.handle('web-server:start', api.startWebServer);
+    ipcMain.handle('web-server:stop', api.stopWebServer);
+    ipcMain.handle('web-server:check', api.checkWebServer);
 });
 
 app.on("window-all-closed", () => {

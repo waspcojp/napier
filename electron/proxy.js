@@ -82,7 +82,22 @@ const stop = (env, profile_name) => {
     clearInterval(env.profiles[profile_name].interval);
 }
 
+const check = (env, profile_name) => {
+    let profile = env.profiles[profile_name];
+    console.log('check', profile);
+    if  ( profile ) {
+        if  ( profile.closed === undefined )    {
+            return  false;
+        } else {
+            return  !profile.closed;
+        }
+    } else {
+        return  false;
+    }
+}
+
 module.exports = {
     start: start,
-    stop: stop
+    stop: stop,
+    check: check
 }

@@ -1,7 +1,7 @@
 const program = require('commander');   //  https://github.com/tj/commander.js
 const {clientOpen, Api} = require('./index');
 const fs = require('fs');
-const startWebServer = require('./web-server');
+const startWebServer = require('./web-server').start;
 
 const LOCAL_PORT = 4000;
 const HOST = 'localhost';

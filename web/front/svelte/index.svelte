@@ -6,9 +6,9 @@
         <div class="content">
             <div class="container-fluid">
             {#if ( current == 'user' ) }
-                <User bind:mode={mode}></User>
+                <User></User>
             {:else if ( current == 'profile' ) }
-                <Profiles bind:mode={mode}></Profiles>
+                <Profiles></Profiles>
             {:else}
                 <div class="row">
                     <div class="col-5" style="padding:10px;">
@@ -47,7 +47,6 @@ export let user;
 
 beforeUpdate(() => {
 	console.log('index beforeUpdate');
-    mode = location.host ? 'web' : 'electron';
     current = current || 'profile';
 });
 

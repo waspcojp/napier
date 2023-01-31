@@ -4,6 +4,8 @@ const { wrapper } = require('axios-cookiejar-support');
 const { CookieJar } = require('tough-cookie');
 const qs = require('querystring');
 const fs = require('fs');
+const webServer = require('./client/web-server');
+
 const ENV_FILE_NAME = '.napier';
 
 const jar = new CookieJar();
@@ -21,7 +23,8 @@ const init = () => {
             host: 'www.napier-net.com',
             port: 8001,
             localPort: 4000,
-            profiles: {}
+            profiles: {},
+            webServer: {}
         };
     }
     console.log('init', env);
@@ -114,9 +117,11 @@ const getProfiles = (ev, args)  => {
                     if  ( !env.profiles[profile.name] ) {
                         profile.localPort = env.localPort;
                         profile.start = false;
+                        profile.closed = true;
                     } else {
                         profile.localPort = env.profiles[profile.name].localPort;
                         profile.start = env.profiles[profile.name].start;
+                        profile.closed = true;
                     }
                 }
                 //console.log('profiles', env.profiles);
@@ -188,7 +193,8 @@ const setConf = (ev, args) => {
             user: env.user,
             password: env.password,
             localPort: env.localPort,
-            profiles: {}
+            profiles: {},
+            webServer: env.webServer
         }
         Object.keys(env.profiles).forEach((key) => {
             _env.profiles[key] = {
@@ -230,6 +236,48 @@ const stopProxy = (ev, args) => {
     });
 }
 
+const checkProxy = (ev, args) => {
+    let profile_name = args.profile;
+    console.log('checkProxy', profile);
+
+    return new Promise((resolve, reject) => {
+        let status = proxy.check(env, profile_name);
+        resolve(status);
+    });
+}
+
+const startWebServer = (ev, args) => {
+    let conf = env.webServer;
+
+    return new Promise((resolve, reject) => {
+        webServer.start(conf.port, conf.public, conf);
+        resolve();
+    }).catch((e) => {
+        console.log('error in runWebServer', e);
+        reject();
+    })
+}
+
+const stopWebServer = (ev, args) => {
+    return new Promise((resolve, reject) => {
+        webServer.stop().then(() => {
+            resolve();
+        }).catch((e) => {
+            reject();
+        });
+    });
+}
+const checkWebServer = (ev, args) => {
+    return new Promise((resolve, reject) => {
+        let status = webServer.check();
+        console.log({status});
+        resolve(status);
+    }).catch((e) => {
+        console.log('error in checkWebServer', e);
+        reject();
+    });
+}
+
 init();
 module.exports = {
     login: login,
@@ -242,5 +290,9 @@ module.exports = {
     deleteProfile: deleteProfile,
     password: password,
     startProxy: startProxy,
-    stopProxy: stopProxy
+    stopProxy: stopProxy,
+    checkProxy: checkProxy,
+    startWebServer: startWebServer,
+    stopWebServer: stopWebServer,
+    checkWebServer: checkWebServer
 };
