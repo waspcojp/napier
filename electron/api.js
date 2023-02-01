@@ -4,7 +4,7 @@ const { wrapper } = require('axios-cookiejar-support');
 const { CookieJar } = require('tough-cookie');
 const qs = require('querystring');
 const fs = require('fs');
-const webServer = require('./client/web-server');
+const webServer = require('./client/web-server.js');
 
 const ENV_FILE_NAME = '.napier';
 
