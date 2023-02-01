@@ -1,6 +1,6 @@
 {
   "name": "napier",
-  "version": "0.0.0",
+  "version": "2.5",
   "description": "simple web proxy service",
   "main": "electron/main.js",
   "author": "Masami Ogoshi",

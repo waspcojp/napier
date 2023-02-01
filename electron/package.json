@@ -1,6 +1,6 @@
 {
   "name": "napier",
-  "version": "0.0.0",
+  "version": "2.5",
   "description": "simple web proxy service",
   "main": "main.js",
   "author": "Masami Ogoshi",
@@ -46,6 +46,7 @@
       "target": "dmg"
     },
     "win": {
+      "maintainer": "Masami Ogoshi <ogochan@wasp.co.jp>",
       "target": "nsis"
     },
     "linux": {
