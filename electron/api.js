@@ -16,19 +16,15 @@ let env;
 let profiles;
 
 const init = () => {
-    try {
-        let store = new Store();
-        env = store.get('env');
-        console.log('store', env);
-    } catch (e) {
-        env = {
-            host: 'www.napier-net.com',
-            port: 8001,
-            localPort: 4000,
-            profiles: {},
-            webServer: {}
-        };
-    }
+    let store = new Store({ name: 'napier'});
+    env = store.get('env',  {
+        host: 'www.napier-net.com',
+        port: 8001,
+        localPort: 4000,
+        profiles: {},
+        webServer: {}
+    });
+    console.log('store', env);
     console.log('init', env);
 }
 
@@ -185,7 +181,7 @@ const deleteProfile = (ev, args) => {
 
 const setConf = (ev, args) => {
     return new Promise ((resolve, reject) => {
-        let store = new Store();
+        let store = new Store({ name: 'napier'});
         console.log('setConf', args, env);
         if ( args ) {
             env = args;

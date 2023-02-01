@@ -2,11 +2,13 @@ const { app, BrowserWindow, ipcMain, dialog } = require("electron");
 const path = require("path");
 
 const api = require('./api');
+//const WIDTH = 1200;
+const WIDTH = 1600;
 
 let mainWindow;
 const createWindow = () => {
     mainWindow = new BrowserWindow({
-        width: 1600,
+        width: WIDTH,
         height: 1000,
         webPreferences: {
             preload: path.join(__dirname, "preload.js"),
@@ -14,7 +16,9 @@ const createWindow = () => {
     });
     mainWindow.loadFile("index.html");
 
-    mainWindow.webContents.openDevTools();
+    if  ( WIDTH > 1200 )    {
+        mainWindow.webContents.openDevTools();
+    }
 
     mainWindow.on("closed", () => {
         mainWindow = null;
