@@ -25,7 +25,7 @@
       "preload.js",
       "api.js",
       "./client/index.js",
-      "./client/web-server",
+      "./client/web-server.js",
       "./libs/message.js",
       "./public/logo.png",
       "./public/circle4686.png",
