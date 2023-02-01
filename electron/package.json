@@ -46,7 +46,6 @@
       "target": "dmg"
     },
     "win": {
-      "maintainer": "Masami Ogoshi <ogochan@wasp.co.jp>",
       "target": "nsis"
     },
     "linux": {
