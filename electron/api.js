@@ -3,8 +3,8 @@ const _axios = require('axios');
 const { wrapper } = require('axios-cookiejar-support');
 const { CookieJar } = require('tough-cookie');
 const qs = require('querystring');
-const fs = require('fs');
 const webServer = require('./client/web-server.js');
+const Store = require('electron-store');
 
 const ENV_FILE_NAME = '.napier';
 
@@ -17,7 +17,9 @@ let profiles;
 
 const init = () => {
     try {
-        env = JSON.parse(fs.readFileSync(ENV_FILE_NAME, 'utf-8'));
+        let store = new Store();
+        env = store.get('env');
+        console.log('store', env);
     } catch (e) {
         env = {
             host: 'www.napier-net.com',
@@ -183,6 +185,7 @@ const deleteProfile = (ev, args) => {
 
 const setConf = (ev, args) => {
     return new Promise ((resolve, reject) => {
+        let store = new Store();
         console.log('setConf', args, env);
         if ( args ) {
             env = args;
@@ -204,7 +207,7 @@ const setConf = (ev, args) => {
 
         console.log('_env', env);
         console.log(JSON.stringify(_env, null, ' '));
-        fs.writeFileSync(ENV_FILE_NAME, JSON.stringify(_env, null, ' '));
+        store.set('env', _env);
         resolve();
     });
 }

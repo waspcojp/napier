@@ -29,6 +29,7 @@
     "cors": "^2.8.5",
     "deasync": "^0.1.28",
     "electron-squirrel-startup": "^1.0.0",
+    "electron-store": "^8.1.0",
     "express": "^4.18.1",
     "express-session": "^1.17.3",
     "file-loader": "^6.2.0",
