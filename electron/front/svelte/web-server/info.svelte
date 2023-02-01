@@ -58,7 +58,9 @@ onMount(()=> {
     if  ( env.webServer )   {
         conf = {
             public: env.webServer.public,
-            port: env.webServer.port
+            port: env.webServer.port,
+            directoryListing: env.webServer.directoryListing,
+            symlinks: env.webServer.symlinks
         };
     } else {
         conf = {};

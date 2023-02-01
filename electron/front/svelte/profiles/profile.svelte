@@ -35,11 +35,16 @@ export  let profile;
 import {onMount, beforeUpdate, afterUpdate, createEventDispatcher} from 'svelte';
 const dispatch = createEventDispatcher();
 import ProfileCard from './profile-card.svelte';
-let web = ( profile.localPort == env.webServer.port ) ? true : false;
+let web;
 let run;
 
 onMount(()=> {
     console.log('profile:onMount');
+    if  ( env.webServer )   {
+        web = ( profile.localPort == env.webServer.port ) ? true : false;
+    } else {
+        web = false;
+    }
     api.checkProxy(profile.name).then((ret) => {
         console.log('ret', profile.name, ret);
         run = ret;
