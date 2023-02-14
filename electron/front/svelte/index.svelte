@@ -44,6 +44,7 @@ import WebServer from './web-server/index.svelte';
 
 let user_name = env.user;
 let current = ( user_name ? 'profile' : 'config');
+//let current = 'config';
 
 const loggedIn = () => {
     console.log('logged in')

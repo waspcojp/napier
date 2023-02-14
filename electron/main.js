@@ -44,12 +44,6 @@ const dialogOpen = (ev, args) => {
 app.whenReady().then(() => {
     createWindow();
 
-    app.on("activate", () => {
-        if (BrowserWindow.getAllWindows().length === 0) {
-            createWindow();
-        }
-    });
-
     ipcMain.handle('user:login', api.login);
     ipcMain.handle('user:logout', api.logout);
     ipcMain.handle('user:signup', api.signup);
@@ -66,6 +60,12 @@ app.whenReady().then(() => {
     ipcMain.handle('web-server:start', api.startWebServer);
     ipcMain.handle('web-server:stop', api.stopWebServer);
     ipcMain.handle('web-server:check', api.checkWebServer);
+
+    app.on("activate", () => {
+        if (BrowserWindow.getAllWindows().length === 0) {
+            createWindow();
+        }
+    });
 });
 
 app.on("window-all-closed", () => {

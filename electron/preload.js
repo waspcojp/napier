@@ -11,7 +11,7 @@ const login = (user_name, password) => {
             if  ( res.result == 'OK' ) {
                 env.user = user_name;
                 resolve();
-                console.log('env', env);
+                //console.log('env', env);
             } else {
                 env.user = undefined;
                 reject(res.message);
@@ -26,7 +26,7 @@ const login = (user_name, password) => {
 const logout = () => {
     return new Promise ((resolv, reject) => {
         ipcRenderer.invoke('user:logout').then((res) => {
-            console.log('preload.js logout', res);
+            //console.log('preload.js logout', res);
             resolv();
         }).catch ((e) => {
             console.log('preload.js logout reject');
@@ -40,7 +40,7 @@ const signup = (user_name, password) => {
             user_name: user_name,
             password: password
         }).then((res) => {
-            console.log('res(preload.js)', res);
+            //console.log('res(preload.js)', res);
             if  ( res.result == 'OK' )  {
                 resolve();
             } else {
@@ -76,7 +76,7 @@ const password = (old_pass, new_pass) => {
 const getProfiles = ()  => {
     return new Promise ((resolve, reject) => {
         ipcRenderer.invoke('profiles').then((res) => {
-            console.log('res', res);
+            //console.log('res', res);
             if  ( res.result == 'OK' ) {
                 resolve(res);
             } else {
@@ -182,7 +182,7 @@ const checkProxy = (profile) => {
         ipcRenderer.invoke('proxy:check', {
             profile: profile
         }).then((res) => {
-            console.log({res});
+            //console.log({res});
             resolve(res);
         });
     });
@@ -218,7 +218,7 @@ const stopWebServer = () => {
 const checkWebServer = () => {
     return new Promise((resolve, reject) => {
         ipcRenderer.invoke('web-server:check').then((res) => {
-            console.log({res});
+            //console.log({res});
             resolve(res);
         }).catch((e) => {
             reject();
@@ -230,10 +230,6 @@ const init = () => {
     //console.log('env', env);
     getConf().then((_env) => {
         env = _env;
-        if  (( env.user ) &&
-             ( env.password ) ) {
-            login(env.user, env.password);
-        }
         contextBridge.exposeInMainWorld('env', env);
         contextBridge.exposeInMainWorld('api', {
             login: login,
@@ -253,6 +249,12 @@ const init = () => {
             stopWebServer: stopWebServer,
             checkWebServer: checkWebServer
         });
+        if  (( env.user ) &&
+             ( env.password ) ) {
+            login(env.user, env.password).then(() => {
+                console.log('logged in', env.user);
+            });
+        }
     });
 }
 

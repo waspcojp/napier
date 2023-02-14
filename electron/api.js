@@ -3,10 +3,10 @@ const _axios = require('axios');
 const { wrapper } = require('axios-cookiejar-support');
 const { CookieJar } = require('tough-cookie');
 const qs = require('querystring');
-const webServer = require('./client/web-server.js');
+const webServer = require('./client/web-server');
 const Store = require('electron-store');
 
-const ENV_FILE_NAME = '.napier';
+const ENV_FILE_NAME = 'napier';
 
 const jar = new CookieJar();
 
@@ -16,7 +16,7 @@ let env;
 let profiles;
 
 const init = () => {
-    let store = new Store({ name: 'napier'});
+    let store = new Store({ name: ENV_FILE_NAME });
     env = store.get('env',  {
         host: 'www.napier-net.com',
         port: 8001,
@@ -24,8 +24,7 @@ const init = () => {
         profiles: {},
         webServer: {}
     });
-    console.log('store', env);
-    console.log('init', env);
+    //console.log('init', env);
 }
 
 const login = (ev, args) => {
@@ -105,9 +104,9 @@ const password = (ev, args) => {
 }
 
 const getProfiles = (ev, args)  => {
+    //console.log('api.js getProfiles');
     return new Promise ((resolve, reject) => {
         axios.get(`${env.host}/manage/api/profiles`).then((res) => {
-            //console.log('ret.data', ret.data);
             if  ( res.data.result == 'OK' ) {
                 profiles = res.data.profiles;
                 //console.log('profiles', profiles);
@@ -181,8 +180,8 @@ const deleteProfile = (ev, args) => {
 
 const setConf = (ev, args) => {
     return new Promise ((resolve, reject) => {
-        let store = new Store({ name: 'napier'});
-        console.log('setConf', args, env);
+        let store = new Store({ name: ENV_FILE_NAME });
+        //console.log('setConf', args, env);
         if ( args ) {
             env = args;
         }
@@ -201,15 +200,15 @@ const setConf = (ev, args) => {
             };
         });
 
-        console.log('_env', env);
-        console.log(JSON.stringify(_env, null, ' '));
+        //console.log('_env', env);
+        //console.log(JSON.stringify(_env, null, ' '));
         store.set('env', _env);
         resolve();
     });
 }
 const getConf = (ev, args) => {
     return new Promise ((resolve, reject) => {
-        console.log('getConf', args);
+        //console.log('getConf');
         resolve(env);
     });
 }
@@ -217,7 +216,7 @@ const getConf = (ev, args) => {
 const startProxy = (ev, args) => {
     let profile_name = args.profile;
     let localPort = args.localPort;
-    console.log('api.js', profile_name, localPort);
+    //console.log('api.js', profile_name, localPort);
 
     return new Promise((resolve, reject) => {
         proxy.start(env, profile_name, localPort);
@@ -227,7 +226,7 @@ const startProxy = (ev, args) => {
 
 const stopProxy = (ev, args) => {
     let profile_name = args.profile;
-    console.log('api.js', profile);
+    //console.log('stopProxy', profile_name);
 
     return new Promise((resolve, reject) => {
         proxy.stop(env, profile_name);
@@ -237,7 +236,7 @@ const stopProxy = (ev, args) => {
 
 const checkProxy = (ev, args) => {
     let profile_name = args.profile;
-    console.log('checkProxy', profile);
+    //console.log('checkProxy', profile);
 
     return new Promise((resolve, reject) => {
         let status = proxy.check(env, profile_name);
@@ -269,7 +268,7 @@ const stopWebServer = (ev, args) => {
 const checkWebServer = (ev, args) => {
     return new Promise((resolve, reject) => {
         let status = webServer.check();
-        console.log({status});
+        //console.log({status});
         resolve(status);
     }).catch((e) => {
         console.log('error in checkWebServer', e);

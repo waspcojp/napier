@@ -46,7 +46,7 @@ onMount(()=> {
         web = false;
     }
     api.checkProxy(profile.name).then((ret) => {
-        console.log('ret', profile.name, ret);
+        //console.log('ret', profile.name, ret);
         run = ret;
     })
 });

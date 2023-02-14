@@ -30,7 +30,7 @@ import Alert from '../components/alert.svelte';
 let alert;
 let alert_level;
 
-let profiles;
+let profiles = [];
 let modal;
 const _profile = {
     path: ''
@@ -53,7 +53,7 @@ const   close_ = (event) => {
 
 const   updateProfiles = () => {
     api.getProfiles().then((body) => {
-            console.log('body', {body});
+            //console.log('body', {body});
             profiles = body.profiles;
         }).catch ((e) => {
             console.log('error', e);
@@ -71,10 +71,7 @@ afterUpdate(() => {
     }
 })
 
-beforeUpdate(() => {
-    if  ( !profiles)    {
-        profiles = [];
-        updateProfiles();
-    }
+onMount(() => {
+    updateProfiles();
 })
 </script>
