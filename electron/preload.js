@@ -1,8 +1,9 @@
 const { contextBridge, ipcRenderer } = require('electron')
 let env;
+let loginPromise;
 
 const login = (user_name, password) => {
-    return new Promise ((resolve, reject) => {
+    loginPromise = new Promise ((resolve, reject) => {
         ipcRenderer.invoke('user:login', {
             user_name: user_name,
             password: password
@@ -22,6 +23,7 @@ const login = (user_name, password) => {
             reject('other error');
         });
     });
+    return  (loginPromise);
 }
 const logout = () => {
     return new Promise ((resolv, reject) => {
@@ -75,13 +77,15 @@ const password = (old_pass, new_pass) => {
 }
 const getProfiles = ()  => {
     return new Promise ((resolve, reject) => {
-        ipcRenderer.invoke('profiles').then((res) => {
-            //console.log('res', res);
-            if  ( res.result == 'OK' ) {
-                resolve(res);
-            } else {
-                reject();
-            }
+        loginPromise.then(() => {
+            ipcRenderer.invoke('profiles').then((res) => {
+                //console.log('res', res);
+                if  ( res.result == 'OK' ) {
+                    resolve(res);
+                } else {
+                    reject();
+                }
+            });
         });
     });
 }
