@@ -23,6 +23,7 @@
             </label>
             <div class="col-sm-8">
                 <input type="text" class="form-control"
+                    disabled={run}
                     on:click={openDialog}
                     bind:value={conf.public}>
             </div>
@@ -33,6 +34,7 @@
             </label>
             <div class="col-sm-2">
                 <input type="text" class="form-control number"
+                    disabled={run}
                     bind:value={conf.port}>
             </div>
         </div>
