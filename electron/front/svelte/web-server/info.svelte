@@ -97,7 +97,10 @@ const start = () => {
 }
 
 const openDialog = async () => {
-    conf.public = await api.openDialog();
-    console.log('root', conf.public);
+    let path = await api.openDialog();
+    console.log('path', path);
+    if  ( path ) {
+        conf.public = path;
+    }
 }
 </script>
