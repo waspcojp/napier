@@ -91,26 +91,36 @@ router.get('/profiles', is_authenticated, (req, res, next) => {
             }).then((profiles) => {
                 for ( profile of profiles ) {
                     if  ( profile.cert )    {
-                        let cert = new crypto.X509Certificate(profile.cert);
-                        let subject = cert.subject.split('\n');
-                        let issuer = cert.issuer.split('\n');
-                        profile.cert =  '*** cert data ***\n' +
-                                        `subject: ${subject[0]}\n`;
-                        for ( let i = 1 ; i < subject.length ; i ++ )   {
-                            profile.cert += `         ${subject[i]}\n`;
+                        try {
+                            let cert = new crypto.X509Certificate(profile.cert);
+                            let subject = cert.subject.split('\n');
+                            let issuer = cert.issuer.split('\n');
+                            profile.cert =  '*** cert data ***\n' +
+                                            `subject: ${subject[0]}\n`;
+                            for ( let i = 1 ; i < subject.length ; i ++ )   {
+                                profile.cert += `         ${subject[i]}\n`;
+                            }
+                            profile.cert += `issuer: ${issuer[0]}\n`
+                            for ( let i = 1 ; i < issuer.length; i ++ ) {
+                                profile.cert += `        ${issuer[i]}\n`;
+                            }
+                            profile.cert +=  `validFrom: ${cert.validFrom}\n` +
+                                            `validTo: ${cert.validTo}`;
+                        } catch(e) {
+                            console.log('X509 error', e);
+                            profile.cert = '** error **';
                         }
-                        profile.cert += `issuer: ${issuer[0]}\n`
-                        for ( let i = 1 ; i < issuer.length; i ++ ) {
-                            profile.cert += `        ${issuer[i]}\n`;
-                        }
-                        profile.cert +=  `validFrom: ${cert.validFrom}\n` +
-                                        `validTo: ${cert.validTo}`;
                     }
                     if  ( profile.key ) {
-                        let key = new NodeRSA(profile.key);
-                        profile.key =   '*** private key data ***\n' +
-                                        `private: ${key.isPrivate ? 'true' : 'false'}\n` +
-                                        `keySize: ${key.getKeySize()}`;
+                        try  {
+                            let key = new NodeRSA(profile.key);
+                            profile.key =   '*** private key data ***\n' +
+                                            `private: ${key.isPrivate ? 'true' : 'false'}\n` +
+                                            `keySize: ${key.getKeySize()}`;
+                        } catch(e) {
+                            console.log('RSA error', e);
+                            profile.key = '** error **';
+                        }
                     }
                     if  ( profile.ca )  {
                         profile.ca = '*** CA data here ***';
