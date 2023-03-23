@@ -5,34 +5,56 @@
             bind:currentPassword
             bind:newPassword
             bind:confirmPassword
-            update={update}></UserInfo>
+            bind:mail
+            updatePassword={updatePassword}
+            updateUser={updateUser}></UserInfo>
     </div>
 </div>
 
 <script>
 import UserInfo from './info.svelte';
 import Alert from '../components/alert.svelte';
+import {onMount, beforeUpdate, afterUpdate, createEventDispatcher} from 'svelte';
 
 let currentPassword;
 let newPassword;
 let confirmPassword;
+let mail;
 let alert;
 let alert_level;
 
-const update = (event) => {
-    if  (( newPassword ) &&
-         ( newPassword == confirmPassword ))    {
-        api.password(currentPassword, newPassword).then((ret) => {
-            alert = 'password update success';
-            alert_level = 'alert-success';
-        }).catch ((e) => {
-            alert = 'password update fail';
+onMount(() => {
+    api.getUser().then((user) => {
+        console.log({user});
+        mail = user.mail;
+    });
+})
+const updatePassword = (event) => {
+    if  ( newPassword ) {
+        if  ( newPassword == confirmPassword )    {
+            api.password(currentPassword, newPassword).then((ret) => {
+                alert = 'password update success';
+                alert_level = 'alert-success';
+            }).catch ((e) => {
+                alert = 'password update fail';
+                alert_level = 'alert-danger';
+            });
+        } else {
+            alert = 'invalid password';
             alert_level = 'alert-danger';
-        });
-    } else {
-        alert = 'invalid password';
-        alert_level = 'alert-danger';
+        }
     }
-};
+}
 
+const updateUser = (event) => {
+    api.putUser({
+        mail: mail
+    }).then((ret) => {
+        alert = 'user info update success';
+        alert_level = 'alert-success';
+    }).catch ((e) => {
+        alert = 'user info update fail';
+        alert_level = 'alert-danger';
+    });
+}
 </script>
