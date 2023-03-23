@@ -7,6 +7,28 @@ import Index from '../svelte/index.svelte';
 let target = document.getElementById('home');
 let user = target.getAttribute('user');
 
+const getUser = ()  => {
+    return new Promise ((resolve, reject) => {
+        axios.get('/manage/api/user').then((ret) => {
+            console.log('ret.data', ret.data);
+            if  ( ret.data.user_name ) {
+                resolve(ret.data);
+            } else {
+                reject();
+            }
+        });
+    });
+}
+
+const putUser = (user) => {
+    return new Promise((resolve, reject) => {
+        axios.put('/manage/api/user', user).then((ret) => {
+            console.log('ret.data', ret.data);
+            resolve(ret.data);
+        });
+    });
+}
+
 const getProfiles = ()  => {
     return new Promise ((resolve, reject) => {
         axios.get('/manage/api/profiles').then((ret) => {
@@ -130,6 +152,8 @@ const password = (old_pass, new_pass) => {
 }
 
 const api = {
+    getUser: getUser,
+    putUser: putUser,
     getProfiles: getProfiles,
     updateProfile: updateProfile,
     deleteProfile: deleteProfile,

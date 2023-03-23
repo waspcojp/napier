@@ -18,8 +18,38 @@ const password = (req, res, next) => {
     })
 }
 
+const getUser = (req, res, next) => {
+    let user_name = User.current(req);
+    User.get(user_name).then((user) => {
+        res.json({
+            id: user.id,
+            user_name: user_name,
+            mail: user.mail
+        })
+    })
+}
+
+const putUser = (req, res, next) => {
+    let user_name = User.current(req);
+    let data = req.body;
+    console.log('putUser', user_name, data);
+    User.get(user_name).then((user) => {
+        user.mail = data.mail;
+        user.save().then(() => {
+            res.json({
+                result: 'OK'
+            })
+        }).catch((err) => {
+            console.log('err', err);
+        })
+    });
+}
+
 router.put('/password', is_authenticated, password);
 router.post('/password', is_authenticated, password);
+
+router.get('/user', is_authenticated, getUser);
+router.put('/user', is_authenticated, putUser);
 
 router.post('/login', (req, res, next) => {
 	Passport.authenticate('local', (error, user, info) => {
