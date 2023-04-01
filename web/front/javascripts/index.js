@@ -112,11 +112,12 @@ const logout = () => {
         reject();
     });
 }
-const signup = (user_name, password) => {
+const signup = (user_name, password, mail) => {
     return new Promise ((resolve, reject) => {
         axios.post('/manage/api/signup', {
             user_name: user_name,
-            password: password
+            password: password,
+            mail: mail
         }).then((ret) => {
             if  ( ret.data.result == 'OK' )  {
                 resolve();

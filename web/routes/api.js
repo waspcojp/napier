@@ -18,6 +18,14 @@ const password = (req, res, next) => {
     })
 }
 
+router.put('/password', is_authenticated, password);
+router.post('/password', is_authenticated, password);
+
+const payment = (req, res, next) => {
+    console.log(req.body);
+}
+router.post('/payment', payment);
+
 const getUser = (req, res, next) => {
     let user_name = User.current(req);
     User.get(user_name).then((user) => {
@@ -44,9 +52,6 @@ const putUser = (req, res, next) => {
         })
     });
 }
-
-router.put('/password', is_authenticated, password);
-router.post('/password', is_authenticated, password);
 
 router.get('/user', is_authenticated, getUser);
 router.put('/user', is_authenticated, putUser);
@@ -86,8 +91,10 @@ router.post('/logout', (req, res, next) => {
 });
 
 router.post('/signup', (req, res, next) => {
+    console.log('signup', req.body);
 	let user_name = req.body.user_name;
 	let password = req.body.password;
+    let mail = req.body.mail;
     User.check(user_name).then((user) => {
         if  ( user) {
             res.json({
@@ -96,7 +103,8 @@ router.post('/signup', (req, res, next) => {
             });
         } else {
 		    user = new User(user_name, {
-			    name: user_name
+			    name: user_name,
+                mail: mail
 		    });
 		    user.password = password;
 		    user.create().then((ret) => {

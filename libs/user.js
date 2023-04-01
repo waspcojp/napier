@@ -56,7 +56,7 @@ function is_authenticated(req, res, next) {
 	if ( req.isAuthenticated() ) {
 		return (next());
 	} else {
-		res.redirect('/manage');
+		res.redirect('/manage/login');
 		//return (next());
 	}
 }
@@ -98,6 +98,7 @@ class User {
 				name: name
 			}
 		}
+		console.log({user_info});
 		Object.keys(user_info).forEach((key) => {
 			this[key] = user_info[key];
 		});
@@ -126,7 +127,8 @@ class User {
 		return new Promise((done, fail) => {
 			models.User.create({
 				name: this.name,
-				hash_password: this.hash_password
+				hash_password: this.hash_password,
+				mail: this.mail
 			}).then((user) => {
 				console.log(user);
 				this.user = user;
