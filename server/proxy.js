@@ -1,7 +1,13 @@
 const Redbird = require('redbird');
 const {HTTP_PORT, HTTPS_PORT, WS_PORT, LOCAL_PORT_RANGE, APPL_PORT, MY_DOMAIN} = require('../config/server.js');
 const Tunnel = require('./tunnel');
-const staticRoute = require('../config/static');
+let staticRoute;
+
+try {
+    staticRoute = require('../config/static');
+} catch(e) {
+    staticRoute = [];
+}
 
 const options = {};
 if  ( HTTP_PORT )   {
