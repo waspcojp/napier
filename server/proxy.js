@@ -6,7 +6,7 @@ let staticRoute;
 try {
     staticRoute = require('../config/static');
 } catch(e) {
-    staticRoute = [];
+    ;
 }
 
 const options = {};
@@ -41,9 +41,11 @@ if  (( MY_DOMAIN.match(/\.local$/) )||
     } : undefined);
 }
 
-for ( let route of staticRoute )    {
-    if  ( route.target )    {
-        proxy.register(route.path, route.target);
+if  ( staticRoute ) {
+    for ( let route of staticRoute )    {
+        if  ( route.target )    {
+            proxy.register(route.path, route.target);
+        }
     }
 }
 
