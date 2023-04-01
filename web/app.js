@@ -83,7 +83,25 @@ const	getContent = (req, res) => {
 		res.status(404).send('<h1>page not found</h1>');
 	}
 }
-
+const getAssets = (req, res) => {
+	let aseets_path = path.join(global.env.content_path, `assets/${req.params.path}`);
+	try {
+					let mime_type = mime.getType(aseets_path);
+					if      ( mime_type )   {
+									res.set('Content-Type', mime_type);
+									if      ( mime_type.match(/^text\/(?<type>.+)/) )       {
+													content = fs.readFileSync(aseets_path, 'utf-8');
+									} else {
+													content = fs.readFileSync(aseets_path);
+									}
+									res.send(content);
+					}
+	} catch(e)      {
+					console.log(e);
+					res.status(404).send('<h1>page not found</h1>');
+	}
+}
+contentRouter.get('/assets/:path', getAssets);
 contentRouter.get('/:path', getContent);
 contentRouter.get('/', getContent);
 
