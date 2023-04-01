@@ -6,21 +6,31 @@ const passport = require('passport');
 const multipart = require('connect-multiparty');
 const cors = require('cors');
 const sprightly = require('sprightly');
+const sprightlyExpress = require('sprightly/express');
 const path = require('path');
 const logger = require('morgan');
 const cookieParser = require('cookie-parser');
-const {User, is_authenticated} = require('../libs/user');
 const contentRouter = express.Router();
 const mime = require('mime');
 const fs = require('fs');
 
 global.env = require('../config/server');
 
+try {
+	global.env.service = require('../config/service');
+} catch(e) {
+	global.env.service = { paidService: false };
+}
+console.log(global.env);
+
 const homeRouter = require('./routes/home');
 const apiRouter = require('./routes/api');
 
-const	makePath = (file) => {
-	let orig_path = path.join(global.env.content_path, file);
+const	makePath = (lang, file) => {
+	if  ( !lang )	{
+		lang = 'en-US';
+	}
+	let orig_path = path.join(global.env.content_path, lang, file);
 	let file_path;
 	if	( orig_path.match(/\/$/))	{
 		file_path = `${orig_path}index.html`;
@@ -30,23 +40,46 @@ const	makePath = (file) => {
 	return	(file_path);
 }
 const	getContent = (req, res) => {
-	console.log(req.params);
+	console.log(req.headers['accept-language']);
 	let params_path = req.params.path || '/';
-	let file_path = makePath(params_path);
-	console.log('file', file_path);
+	let lang;
+	try {
+		lang = req.headers['accept-language'].split(';')[0].split(',')[0];
+	} catch (e) {
+		lang = 'en-US';
+	}
+	let file_path = makePath(lang, params_path);
+	console.log('file', lang, file_path);
 	try	{
-		let mime_type = mime.getType(file_path);
-		if	( mime_type )	{
-			res.set('Content-Type', mime_type);
-			let	content;
-			if	( mime_type.match(/^text\/(?<type>.+)/) )	{
-				content = fs.readFileSync(file_path, 'utf-8')
-			} else {
-				content = fs.readFileSync(file_path);
+		let	content;
+		if	( file_path.match(/\.html$/) )	{
+			if	( fs.existsSync(file_path) )	{
+				if	( fs.existsSync(file_path) )	{
+					content = sprightly.sprightly(file_path, {
+						env: global.env }, {
+							cache: false
+						});
+					res.set('Content-Type', 'text/html');
+					res.send(content);
+				} else {
+					console.log(e);
+					res.status(404).send('<h1>page not found</h1>');
+				}
 			}
-			res.send(content);
+		} else {
+			let mime_type = mime.getType(file_path);
+			if	( mime_type )	{
+				res.set('Content-Type', mime_type);
+				if	( mime_type.match(/^text\/(?<type>.+)/) )	{
+					content = fs.readFileSync(file_path, 'utf-8');
+				} else {
+					content = fs.readFileSync(file_path);
+				}
+				res.send(content);
+			}
 		}
 	} catch(e)	{
+		console.log(e);
 		res.status(404).send('<h1>page not found</h1>');
 	}
 }
@@ -85,7 +118,11 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 
-app.engine('spy', sprightly);
+app.engine('spy', sprightlyExpress({
+	cache: false,
+	keyFallback: "obada",
+	throwOnKeyNotfound: false
+}));
 app.set('views', './web/views');
 app.set('view engine', 'spy');
 
