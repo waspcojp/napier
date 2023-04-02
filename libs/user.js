@@ -1,6 +1,12 @@
 const models = require('../models');
 const bcrypt = require('bcrypt');
 const SALT_ROUNDS = 10;
+const NG_NAMES = [
+	'admin',
+	'manage',
+	'manager',
+	'user'
+];
 
 const passport = require('passport');
 const Local = require('passport-local').Strategy;
@@ -159,10 +165,17 @@ class User {
 		return (this.hash_password);
 	}
 	static check(name) {
-		return	models.User.findOne({
-			where: {
-				name: name },
-		});
+		if	( NG_NAMES.indexOf(name) < 0 )	{
+			return	models.User.findOne({
+				where: {
+					name: name },
+			});
+		} else {
+			return	new Promise((resolve, reject) => {
+				console.log('invalid name', name);
+				reject(`invalid name: '${name}'`);
+			});
+		}
 	}
 }
 

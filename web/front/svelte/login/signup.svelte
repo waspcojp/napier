@@ -12,6 +12,12 @@
                 <div class="input-group mb-3">
                     <input type="password" bind:value={password} class="form-control" placeholder="Password">
                 </div>
+                <div class="input-group mb-3">
+                    <input type="password" bind:value={confirmPassword} class="form-control" placeholder="Confirm Password">
+                </div>
+                <div class="input-group mb-3">
+                    <input type="text" bind:value={mail} class="form-control" placeholder="Mail address">
+                </div>
                 <div class="row">
                     <div class="col-8">
                     </div>
@@ -43,15 +49,21 @@ export let current;
 
 let user_name;
 let password;
+let confirmPassword;
+let mail;
 let alert;
 
 const SignUp = () => {
     try {
-        api.signup(user_name, password).then((ret) => {
-            current = 'login';
-        }).catch((msg) => {
-            alert = msg;
-        });
+        if  ( password == confirmPassword ) {
+            api.signup(user_name, password, mail).then((ret) => {
+                current = 'login';
+            }).catch((msg) => {
+                alert = msg;
+            });
+        } else {
+            alert = 'password not match';
+        }
     } catch(e) {
         console.log('login fail', e);
     }

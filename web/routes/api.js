@@ -113,6 +113,11 @@ router.post('/signup', (req, res, next) => {
                 })
 		    });
         }
+    }).catch((err) => {
+        res.json({
+            result: 'NG',
+            message: err
+        });
     });
 });
 
