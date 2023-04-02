@@ -33,6 +33,7 @@
     "express": "^4.18.1",
     "express-session": "^1.17.3",
     "file-loader": "^6.2.0",
+    "follow-redirects": "^1.15.2",
     "markdown-it": "^12.3.2",
     "markdown-it-abbr": "^1.0.4",
     "markdown-it-container": "^2.0.0",

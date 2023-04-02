@@ -106,7 +106,7 @@ Arguments:
 Options:
   --config <config filename>         config file
   --user <user>                      user name
-  --pass <pass>                      password
+  --password <pass>                  password
   --host <host>                      tunnel host
   --port <port>                      tunnel port
   --local-port <localPort>           local port
@@ -117,7 +117,7 @@ Options:
   --index                            list index
 ```
 
-このうち、必ず指定するものは、`--user`, `--pass`, `--host`です。
+このうち、必ず指定するものは、`--user`, `--password`, `--host`です。
 
 コマンドラインで指定するオプションは、
 
@@ -128,7 +128,7 @@ Options:
     "reConnect": true,
     "webServer": false,
     "user": "****",
-    "pass": "****",
+    "password": "****",
     "documentRoot": "."
 }
 ```

@@ -5,6 +5,8 @@ const NG_NAMES = [
 	'admin',
 	'manage',
 	'manager',
+	'root',
+	'api',
 	'user'
 ];
 
@@ -46,17 +48,7 @@ passport.deserializeUser((user, done) => {
 	done(null, user);
 });
 
-/* GET users listing. */
-/*
-router.get('/login', (req, res, next) => {
-	res.render('login', { title: 'Login',
-						  msg_type: '',
-						  message: '',
-						});
-});
-*/
-
-function is_authenticated(req, res, next) {
+const	is_authenticated = (req, res, next) => {
 	console.log(req.session);
 
 	if ( req.isAuthenticated() ) {
@@ -67,7 +59,7 @@ function is_authenticated(req, res, next) {
 	}
 }
 
-function auth_user(name, password) {
+const	auth_user = (name, password) => {
 	return new Promise((done, fail) => {
 		try {
 			models.User.findOne({
@@ -145,7 +137,7 @@ class User {
 		});
 	}
 	save()	{
-		console.log('save', this.user);
+		//console.log('save', this.user);
 		return new Promise((done, fail) => {
 			if	( this.user )	{
 				this.user.save().then((user) => {

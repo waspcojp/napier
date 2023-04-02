@@ -9,12 +9,19 @@ module.exports = (sequelize, DataTypes) => {
 				foreignKey: 'userId',
 				sourceKey: 'id',
 				as: 'profiles'
-			})
+			});
+			this.hasMany(models.Receipt, {
+				foreignKey: 'userId',
+				sourceKey: 'id',
+				as: 'receipts'
+			});
     	}
   	}
   	User.init({
     	name: DataTypes.STRING,
-    	hash_password: DataTypes.STRING
+    	hash_password: DataTypes.STRING,
+		mail: DataTypes.STRING,
+		payLimitAt: DataTypes.DATE
   	}, {
     	sequelize,
     	modelName: 'User',

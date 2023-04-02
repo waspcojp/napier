@@ -1,7 +1,7 @@
-{#if ( user )}
+{#if ( user && user !== 'null' )}
 <div  class="wrapper">
     <CommonNav bind:user={user} bind:current={current}></CommonNav>
-    <SideBar bind:current={current}></SideBar>
+    <SideBar bind:current={current} paidService={paidService}></SideBar>
     <main class="content-wrapper">
         <div class="content">
             <div class="container-fluid">
@@ -43,11 +43,12 @@ import CommonFooter from './common/footer.svelte';
 let current;
 let mode;
 export let user;
+export let paidService;
 
 
 beforeUpdate(() => {
-	console.log('index beforeUpdate');
-    current = current || 'profile';
+	console.log('index beforeUpdate', user);
+    current = current || ( user ? null : 'profile');
 });
 
 </script>
