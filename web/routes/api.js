@@ -95,7 +95,7 @@ router.post('/signup', (req, res, next) => {
 	let user_name = req.body.user_name;
 	let password = req.body.password;
     let mail = req.body.mail;
-    User.check(user_name).then((user) => {
+    User.check(user_name, password, mail).then((user) => {
         if  ( user) {
             res.json({
                 result: 'NG',

@@ -164,16 +164,23 @@ class User {
 	get password() {
 		return (this.hash_password);
 	}
-	static check(name) {
-		if	( NG_NAMES.indexOf(name) < 0 )	{
-			return	models.User.findOne({
-				where: {
-					name: name },
-			});
-		} else {
+	static check(name, password, mail) {
+		if	( NG_NAMES.indexOf(name) >= 0 )	{
 			return	new Promise((resolve, reject) => {
 				console.log('invalid name', name);
 				reject(`invalid name: '${name}'`);
+			});
+		} else
+		if	(	( mail === undefined )
+			||	( mail === ''        ) )	{
+			return	new Promise((resolve, reject) => {
+				console.log('mail address not set');
+				reject('mail address not set');
+			});
+		} else {
+			return	models.User.findOne({
+				where: {
+					name: name },
 			});
 		}
 	}

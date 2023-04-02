@@ -7,16 +7,20 @@
             <div class="card-body login-card-body">
                 <p class="login-box-msg">Sign up to start your session</p>
                 <div class="input-group mb-3">
-                    <input type="text" bind:value={user_name} class="form-control" placeholder="User name">
+                    <input type="text" bind:value={user_name}
+                        class="form-control" placeholder="User name">
                 </div>
                 <div class="input-group mb-3">
-                    <input type="password" bind:value={password} class="form-control" placeholder="Password">
+                    <input type="password" bind:value={password}
+                        class="form-control" placeholder="Password">
                 </div>
                 <div class="input-group mb-3">
-                    <input type="password" bind:value={confirmPassword} class="form-control" placeholder="Confirm Password">
+                    <input type="password" bind:value={confirmPassword}
+                        class="form-control" placeholder="Confirm Password">
                 </div>
                 <div class="input-group mb-3">
-                    <input type="text" bind:value={mail} class="form-control" placeholder="Mail address">
+                    <input type="text" bind:value={mail}
+                        class="form-control" placeholder="Mail address">
                 </div>
                 <div class="row">
                     <div class="col-8">
@@ -29,7 +33,8 @@
                     </div>
                 </div>
                 <p class="mb-0">
-                    <a on:click|preventDefault={() => { current = 'login' }} href="#" class="text-center">
+                    <a on:click|preventDefault={() => { current = 'login' }}
+                        href="#" class="text-center">
                         Member login
                     </a>
                 </p>
