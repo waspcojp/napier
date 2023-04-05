@@ -11,9 +11,7 @@ module.exports = {
 	context: path.resolve(__dirname, 'web/front/javascripts'),
     entry: {
 		index: './index.js',
-		common: './common.js',
-		renderer: '../../../electron/renderer.js',
-		electron: '../../../electron/electron.js'
+		common: './common.js'
 	},
     output: {
         path: path.resolve(__dirname, 'web/dist'),

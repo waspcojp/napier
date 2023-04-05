@@ -14,7 +14,7 @@
 <script>
 import UserInfo from './info.svelte';
 import Alert from '../components/alert.svelte';
-import {onMount, beforeUpdate, afterUpdate, createEventDispatcher} from 'svelte';
+import {onMount} from 'svelte';
 
 let currentPassword;
 let newPassword;

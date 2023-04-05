@@ -11,7 +11,7 @@ module.exports = {
     //cert_path: `${process.env.PWD}/certs`,
     content_path: `${process.env.PWD}/page`,
     makeDefaultPath: (domain, user) => {
-        return  `${user.name}.${domain}`;
-        //return  `www.${domain}/${user.name}`;
+        //return  `${user.name}.${domain}`;
+        return  `www.${domain}/${user.name}`;
     }
 };
