@@ -1,10 +1,12 @@
 const express = require('express');
 const router = express.Router();
 const {auth_user, is_authenticated, User, Passport} = require('../../libs/user');
+const {MY_DOMAIN, makeDefaultPath} = require('../../config/server.js');
 const {passwd} = require('../../server/user');
 const {Profile} = require('../../models');
 const crypto = require('node:crypto');
 const NodeRSA = require('node-rsa');
+const service = global.env.service;
 
 const password = (req, res, next) => {
     let body = req.body;
@@ -57,26 +59,39 @@ router.get('/user', is_authenticated, getUser);
 router.put('/user', is_authenticated, putUser);
 
 router.post('/login', (req, res, next) => {
-	Passport.authenticate('local', (error, user, info) => {
+	Passport.authenticate('local', (error, _user, info) => {
+        console.log({_user});
 		if (error) {
 			return next(error);
         }
-        if  ( !user )   {
+        if  ( !_user )   {
             res.json({
                 result: 'NG',
-                message: `user ${user.user_name} not found`
+                message: `user not found`
             });
         } else {
-			req.login(user, (error, next) => {
+			req.login(_user, (error, next) => {
                 if  ( error )   {
                     console.log('error');
                     res.json({
                         result: 'NG',
-                        message: `user ${user.user_name} not found`
+                        message: `user not found`
                     });
                 } else {
+                    let newProfile;
+                    let user = _user.user;
+                    console.log({user}, new Date());
+                    if  ( service.paidService )    {
+                        newProfile = ( user.payLimitAt && user.payLimitAt > new Date()) ? true : false;
+                    } else {
+                        newProfile = true;
+                    }
                     res.json({
-                        result: 'OK'
+                        result: 'OK',
+                        specs: {
+                            newProfile: newProfile,
+                            useWildcardCert: service.useWildcardCert
+                        }
                     });
                 }
             });
@@ -122,7 +137,9 @@ router.post('/signup', (req, res, next) => {
 });
 
 router.get('/profiles', is_authenticated, (req, res, next) => {
-    User.get(User.current(req)).then((user) => {
+    let user_name = User.current(req);
+    console.log({user_name});
+    User.get(user_name).then((user) => {
         if  ( user )    {
             Profile.findAll({
                 where: {
@@ -169,6 +186,14 @@ router.get('/profiles', is_authenticated, (req, res, next) => {
                         profile.ca = '*** CA data here ***';
                     }
                 }
+                if  ( profiles.length === 0 )   {
+                    profiles.push(Object({
+                        name: 'default',
+                        path: makeDefaultPath(MY_DOMAIN, user)
+                    }));
+                    console.log(profiles);
+                }
+
                 res.json({
                     result: 'OK',
                     profiles: profiles

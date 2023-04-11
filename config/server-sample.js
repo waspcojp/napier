@@ -12,6 +12,6 @@ module.exports = {
     content_path: `${process.env.PWD}/page`,
     makeDefaultPath: (domain, user) => {
         //return  `${user.name}.${domain}`;
-        return  `www.${domain}/${user.name}`;
+        return  `${domain}:8000/${user.name}`;
     }
 };

@@ -25,9 +25,10 @@ passport.use(new Local(
 		//console.log('done', done);
 
 		process.nextTick(() => {
-			auth_user(user_name, password).then(() => {
+			auth_user(user_name, password).then((user) => {
 				return done(null, {
-					user_name: user_name
+					user_name: user_name,
+					user: user.dataValues
 				});
 			}).catch(() => {
 				console.log('login error');

@@ -29,9 +29,7 @@ module.exports = class {
     }
     start(port, profile) {
         this.localPort = port;
-        console.log('profile', profile.name);
         if  ( profile.name == 'default' )   {
-            profile.ssl = true;
         } else
         if  ( profile.ssl ) {
             if  ( profile.key ) {
@@ -51,6 +49,7 @@ module.exports = class {
                 profile.ssl = true;
             }
         }
+        //console.log('profile', profile);
         this.profile = profile;
         this.send = 0;
         this.recv = 0;
