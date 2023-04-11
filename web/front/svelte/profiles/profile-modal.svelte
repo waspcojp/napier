@@ -15,13 +15,17 @@
                     <div class="row mb-3">
                         <label for="name" class="col-sm-2 col-form-label">Name</label>
                         <div class="col-sm-10">
-                            <input type="text" class="form-control" bind:value={profile.name}>
+                            <input type="text" class="form-control"
+                                disabled={ profile.name === 'default' }
+                                bind:value={profile.name}>
                         </div>
                     </div>
                     <div class="row mb-3">
                         <label for="path" class="col-sm-2 col-form-label">Path</label>
                         <div class="col-sm-10">
-                            <input type="text" class="form-control" bind:value={profile.path}>
+                            <input type="text" class="form-control"
+                                disabled={ !specs || !specs.newProfile || ( profile.name === 'default')}
+                                bind:value={profile.path}>
                         </div>
                     </div>
                     <div class="row mb-3">
@@ -71,6 +75,7 @@ const dispatch = createEventDispatcher();
 
 export let modal;
 export let profile;
+export let specs;
 
 const clean_popup = () => {
 	dispatch('close');

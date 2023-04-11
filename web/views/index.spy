@@ -10,7 +10,8 @@
 	<body class="layout-fixed" id="body">
 		<div id="home" style="width:100%;"
 			user={{user}}
-			paidService={{paidService}}></div>
+			newProfile={{newProfile}}
+			useWildcardCert={{useWildcardCert}}></div>
 		<script src="dist/index.js"></script>
 	</body>
 </html>

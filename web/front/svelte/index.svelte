@@ -1,14 +1,19 @@
 {#if ( user && user !== 'null' )}
 <div  class="wrapper">
-    <CommonNav bind:user={user} bind:current={current}></CommonNav>
-    <SideBar bind:current={current} paidService={paidService}></SideBar>
+    <CommonNav
+        bind:user={user}
+        bind:current={current}></CommonNav>
+    <SideBar
+        bind:current={current}
+        specs={specs}></SideBar>
     <main class="content-wrapper">
         <div class="content">
             <div class="container-fluid">
             {#if ( current == 'user' ) }
                 <User></User>
             {:else if ( current == 'profile' ) }
-                <Profiles></Profiles>
+                <Profiles
+                    specs={specs}></Profiles>
             {:else}
                 <div class="row">
                     <div class="col-5" style="padding:10px;">
@@ -26,7 +31,10 @@
     {#if ( current == 'signup' ) }
     <SignUp bind:user={user} bind:current={current}></SignUp>
     {:else}
-    <Login bind:user={user} bind:current={current}></Login>
+    <Login
+        bind:user={user}
+        bind:specs={specs}
+        bind:current={current}></Login>
     {/if}
 {/if}
 
@@ -41,13 +49,10 @@ import SignUp from './login/signup.svelte';
 import CommonFooter from './common/footer.svelte';
 
 let current;
-let mode;
+export let specs;
 export let user;
-export let paidService;
 
-
-beforeUpdate(() => {
-	console.log('index beforeUpdate', user);
+onMount(() => {
     current = current || ( user ? null : 'profile');
 });
 

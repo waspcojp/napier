@@ -34,6 +34,5 @@
 import {onMount, beforeUpdate, afterUpdate, createEventDispatcher} from 'svelte';
 
 export let current;
-
-console.log('current', current);
+export let specs;
 </script>

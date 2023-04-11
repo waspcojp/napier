@@ -40,6 +40,7 @@
 import {onMount, beforeUpdate, afterUpdate, createEventDispatcher} from 'svelte';
 export let user;
 export let current;
+export let specs;
 
 let user_name;
 let password;
@@ -47,8 +48,9 @@ let alert;
 
 const Login = () => {
     try {
-        api.login(user_name, password).then(() => {
+        api.login(user_name, password).then((_env) => {
             user = user_name;
+            specs = _env.specs;
             current = 'home';
         }).catch((msg) => {
             alert = msg;

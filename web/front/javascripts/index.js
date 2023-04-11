@@ -6,6 +6,8 @@ import Index from '../svelte/index.svelte';
 
 let target = document.getElementById('home');
 let user = target.getAttribute('user');
+let newProfile = target.getAttribute('newProfile');
+let useWildcardCert = target.getAttribute('useWildcardCert');
 
 const getUser = ()  => {
     return new Promise ((resolve, reject) => {
@@ -93,7 +95,7 @@ const login = (user_name, password) => {
         }).then((res) => {
             console.log('login', res);
             if  ( res.data.result == 'OK' ) {
-                resolve();
+                resolve(res.data);
             } else {
                 reject(res.data.message);
             }
@@ -151,7 +153,6 @@ const password = (old_pass, new_pass) => {
         }
     });
 }
-
 const api = {
     getUser: getUser,
     putUser: putUser,
@@ -168,7 +169,11 @@ window.api = api;
 const index = new Index({
     target: target,
     props: {
-        user: user
+        user: user,
+        specs: {
+            newProfile: (newProfile === 'true'),
+            useWildcardCert: (useWildcardCert === 'true')
+        }
     }
 });
 

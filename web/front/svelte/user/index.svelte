@@ -2,16 +2,23 @@
 <div class="row">
     <div class="col-6" style="padding:10px;">
         <UserInfo
+            bind:mail
+            update={updateUser}></UserInfo>
+    </div>
+</div>
+<div class="row">
+    <div class="col-6" style="padding:10px;">
+        <Password
             bind:currentPassword
             bind:newPassword
             bind:confirmPassword
             bind:mail
-            updatePassword={updatePassword}
-            updateUser={updateUser}></UserInfo>
+            update={updatePassword}></Password>
     </div>
 </div>
 
 <script>
+import Password from './password.svelte';
 import UserInfo from './info.svelte';
 import Alert from '../components/alert.svelte';
 import {onMount} from 'svelte';

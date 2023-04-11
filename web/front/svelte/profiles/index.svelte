@@ -1,14 +1,17 @@
 <Alert bind:alert={alert} {alert_level}></Alert>
+{#if ( specs && specs.newProfile )}
 <div class="row justify-content-end">
     <div class="col-1" style="padding:10px;">
         <button type="button" class="btn btn-primary"
             on:click={newProfile}>New</button>
     </div>
 </div>
+{/if}
 <div class="row">
 {#each profiles as profile}
     <div class="col-3" style="padding:10px;">
         <Profile
+            {specs}
             bind:profile={profile}
             on:open={openProfile}
         ></Profile>
@@ -19,6 +22,7 @@
 <ProfileModal
     {modal}
     {profile}
+    {specs}
     on:close={close_}></ProfileModal>
 
 <script>
@@ -27,6 +31,8 @@ import Profile from './profile.svelte';
 import ProfileModal from './profile-modal.svelte';
 import Modal from 'bootstrap/js/dist/modal';
 import Alert from '../components/alert.svelte';
+
+export let specs;
 
 let alert;
 let alert_level;
@@ -58,6 +64,10 @@ const   updateProfiles = () => {
             profiles = body.profiles;
         })
 }
+
+onMount(() => {
+    console.log({specs});
+})
 
 let openModal = false;
 afterUpdate(() => {

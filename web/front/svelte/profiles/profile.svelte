@@ -6,10 +6,12 @@
 </div>
 
 <script>
-export  let profile;
 import {onMount, beforeUpdate, afterUpdate, createEventDispatcher} from 'svelte';
 const dispatch = createEventDispatcher();
 import ProfileCard from './profile-card.svelte';
+
+export  let profile;
+export  let specs;
 
 const   click = (event) => {
     dispatch('open', profile);
