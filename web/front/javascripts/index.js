@@ -8,6 +8,7 @@ let target = document.getElementById('home');
 let user = target.getAttribute('user');
 let newProfile = target.getAttribute('newProfile');
 let useWildcardCert = target.getAttribute('useWildcardCert');
+let useSSL = target.getAttribute('useSSL');
 
 const getUser = ()  => {
     return new Promise ((resolve, reject) => {
@@ -172,7 +173,8 @@ const index = new Index({
         user: user,
         specs: {
             newProfile: (newProfile === 'true'),
-            useWildcardCert: (useWildcardCert === 'true')
+            useWildcardCert: (useWildcardCert === 'true'),
+            useSSL: (useSSL === 'true')
         }
     }
 });

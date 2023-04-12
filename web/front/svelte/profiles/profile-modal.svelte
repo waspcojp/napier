@@ -28,6 +28,7 @@
                                 bind:value={profile.path}>
                         </div>
                     </div>
+                    {#if ( specs && specs.useSSL )}
                     <div class="row mb-3">
                         <label for="ssl" class="col-sm-2 col-form-label">SSL</label>
                         <div class="col-sm-10">
@@ -55,6 +56,7 @@
                             <textarea class="form-control monospace" bind:value={profile.ca} rows="5"></textarea>
                         </div>
                     </div>
+                    {/if}
                 </div>
             </div>
 			<div class="modal-footer">

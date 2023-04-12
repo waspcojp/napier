@@ -1,12 +1,12 @@
 const express = require('express');
 const router = express.Router();
 const {auth_user, is_authenticated, User, Passport} = require('../../libs/user');
-const {MY_DOMAIN, makeDefaultPath} = require('../../config/server.js');
 const {passwd} = require('../../server/user');
 const {Profile} = require('../../models');
 const crypto = require('node:crypto');
 const NodeRSA = require('node-rsa');
 const service = global.env.service;
+const config = global.env;
 
 const password = (req, res, next) => {
     let body = req.body;
@@ -90,7 +90,8 @@ router.post('/login', (req, res, next) => {
                         result: 'OK',
                         specs: {
                             newProfile: newProfile,
-                            useWildcardCert: service.useWildcardCert
+                            useWildcardCert: service.useWildcardCert,
+                            useSSL: (config.HTTPS_PORT && config.HTTPS_PORT > 0) ? true : false
                         }
                     });
                 }
@@ -189,7 +190,7 @@ router.get('/profiles', is_authenticated, (req, res, next) => {
                 if  ( profiles.length === 0 )   {
                     profiles.push(Object({
                         name: 'default',
-                        path: makeDefaultPath(MY_DOMAIN, user)
+                        path: config.makeDefaultPath(config.MY_DOMAIN, user)
                     }));
                     console.log(profiles);
                 }

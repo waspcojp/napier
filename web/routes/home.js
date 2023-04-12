@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const {User, is_authenticated} = require('../../libs/user');
 const service = global.env.service;
+const config = global.env;
 
 const index =  async (req, res, next) => {
 	let title;
@@ -32,7 +33,8 @@ const index =  async (req, res, next) => {
 				message: '',
 				user: user_name,
 				newProfile: newProfile,
-				useWildcardCert: service.useWildcardCert
+				useWildcardCert: service.useWildcardCert,
+				useSSL: (config.HTTPS_PORT && config.HTTPS_PORT > 0) ? true : false
 			});
 		}).catch((e) => {
 			console.log(e);

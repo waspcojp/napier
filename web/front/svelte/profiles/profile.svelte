@@ -2,7 +2,9 @@
     <div class="card-header" on:click={click}>
         <h3 class="card-title">{profile.name}</h3>
     </div>
-    <ProfileCard {profile}></ProfileCard>
+    <ProfileCard 
+        {specs}
+        {profile}></ProfileCard>
 </div>
 
 <script>
