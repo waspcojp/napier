@@ -45,7 +45,6 @@ const _profile = {
 let profile = _profile;
 
 const   openProfile = (event) => {
-    event.preventDefault();
     profile = event.detail;
     openModal = true;
 }

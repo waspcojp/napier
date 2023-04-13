@@ -60,13 +60,15 @@
                 </div>
             </div>
 			<div class="modal-footer">
-				{#if ( profile && profile.id ) }
+				<button type="button" class="btn btn-info" id="close-button"
+						on:click={close_}>取消</button>
+				{#if ( profile && profile.name !== 'default' ) }
 					<button type="button" class="btn btn-danger" id="delete-button"
 						on:click={delete_}>Delete</button>
-				{/if}
-				<button type="button" class="btn btn-primary" id="save-button"
+				    <button type="button" class="btn btn-primary" id="save-button"
 						on:click={save}>Save</button>
-			</div>
+                {/if}
+            </div>
 		</div>
 	</div>
 </div>

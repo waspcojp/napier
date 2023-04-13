@@ -190,7 +190,8 @@ router.get('/profiles', is_authenticated, (req, res, next) => {
                 if  ( profiles.length === 0 )   {
                     profiles.push(Object({
                         name: 'default',
-                        path: config.makeDefaultPath(config.MY_DOMAIN, user)
+                        path: config.makeDefaultPath(config.MY_DOMAIN, user),
+                        ssl: (config.HTTPS_PORT && config.HTTPS_PORT > 0) ? true : false
                     }));
                     console.log(profiles);
                 }
