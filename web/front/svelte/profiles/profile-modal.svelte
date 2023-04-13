@@ -65,6 +65,8 @@
 				{#if ( profile && profile.name !== 'default' ) }
 					<button type="button" class="btn btn-danger" id="delete-button"
 						on:click={delete_}>Delete</button>
+                {/if}
+                {#if ( specs && specs.useSSL )}
 				    <button type="button" class="btn btn-primary" id="save-button"
 						on:click={save}>Save</button>
                 {/if}
