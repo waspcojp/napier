@@ -20,6 +20,8 @@ const   parseOptions = () => {
     program.option  ('--server-config <config filename>', 'web server config file');
     program.option  ('--document-root <path>',     'web server document root');
     program.option  ('--index',                    'list index');
+    program.option  ('--markdown',                 'markdown SSR');
+
     program.argument('[profileName]',              'profile name', 'default');
     program.parse();
 
@@ -46,7 +48,7 @@ const   parseOptions = () => {
     opts['reConnect'] ||= false;
     opts['webServer'] ||= false;
     opts['index'] ||= false;
-    console.log({opts}, args);
+    //console.log({opts}, args);
 
     return  { opts: opts, profile: args[0]};
 }
@@ -99,6 +101,7 @@ const   main = () => {
             opts.documentRoot ||= config['public'];
         } else {
             config['directoryListing'] = opts.index;
+            config['markdown'] = opts.markdown;
         }
         startWebServer(opts.localPort, opts.documentRoot, config);
     }
