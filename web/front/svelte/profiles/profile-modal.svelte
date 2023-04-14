@@ -51,7 +51,7 @@
                         </div>
                     </div>
                     <div class="row mb-3">
-                        <label for="key" class="col-sm-2 col-form-label">Certificate</label>
+                        <label for="key" class="col-sm-2 col-form-label">Certificate Authority</label>
                         <div class="col-sm-10">
                             <textarea class="form-control monospace" bind:value={profile.ca} rows="5"></textarea>
                         </div>
