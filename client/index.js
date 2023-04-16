@@ -44,18 +44,12 @@ const   ping = (ws) => {
     })
 }
 
-const   clientOpen = (host, port, localPort, secure) => {
+const   clientOpen = (localPort, ws_url) => {
     let ws;
     
     try {
-        let ws_uri;
-        if  ( secure )  {
-            ws_uri = `wss://${host}:${port}`;
-        } else {
-            ws_uri = `ws://${host}:${port}`;
-        }
-        ws = new WebSocket(ws_uri);
-        console.log('open', ws_uri);
+        console.log('open', ws_url);
+        ws = new WebSocket(ws_url);
         ws.sequence = 0;
         ws.Close = () => {
             //console.log('close');

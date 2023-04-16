@@ -137,6 +137,20 @@ router.post('/signup', (req, res, next) => {
     });
 });
 
+router.get('/proxy', is_authenticated, (req, res, next) => {
+    let host;
+    if  (( config.MY_DOMAIN.match(/\.local$/) ) ||
+         ( config.MY_DOMAIN.match(/^\d\.\d\.\d\.\d\./) ))   {
+        host = config.MY_DOMAIN;
+    } else {
+        host = `www.${config.MY_DOMAIN}`;
+    }
+    res.json({
+        result: 'OK',
+        url: `${config.cert_path ? 'wss' : 'ws'}://${host}:${config.WS_PORT}`
+    });
+});
+
 router.get('/profiles', is_authenticated, (req, res, next) => {
     let user_name = User.current(req);
     console.log({user_name});
