@@ -160,8 +160,8 @@ router.get('/profiles', is_authenticated, (req, res, next) => {
             }).then((profiles) => {
                 for ( profile of profiles ) {
                     if  ( profile.cert )    {
+                        console.log('cert', profile.name, profile.cert);
                         try {
-                            console.log('cert', profile.name, profile.cert);
                             let cert = new crypto.X509Certificate(profile.cert);
                             let subject = cert.subject.split('\n');
                             let issuer = cert.issuer.split('\n');
