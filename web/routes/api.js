@@ -227,7 +227,6 @@ router.put('/profile', is_authenticated, (req, res, next) => {
         profile.name = body.name;
         profile.path = body.path;
         profile.ssl = body.ssl;
-        console.log('private', body.key);
         if  (( body.key ) &&
              ( body.key.match(/^---/) ))    {
             profile.key = body.key;
