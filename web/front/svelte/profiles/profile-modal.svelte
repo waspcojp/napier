@@ -105,6 +105,10 @@ const save = (event) => {
          ( !profile.cert.match(/^---/) ))    {
         profile.cert = undefined;
     }
+    if  (( !profile.ca ) ||
+         ( !profile.ca.match(/^---/) ))    {
+        profile.ca = undefined;
+    }
     if  ( !profile.ssl )    {
         profile.ssl = false;
     }

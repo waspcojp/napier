@@ -160,7 +160,6 @@ router.get('/profiles', is_authenticated, (req, res, next) => {
             }).then((profiles) => {
                 for ( profile of profiles ) {
                     if  ( profile.cert )    {
-                        console.log('cert', profile.name, profile.cert);
                         try {
                             let cert = new crypto.X509Certificate(profile.cert);
                             let subject = cert.subject.split('\n');
@@ -228,13 +227,16 @@ router.put('/profile', is_authenticated, (req, res, next) => {
         profile.name = body.name;
         profile.path = body.path;
         profile.ssl = body.ssl;
-        if  ( body.key )    {
+        if  (( body.key ) &&
+             ( body.key.match(/^---/) ))    {
             profile.key = body.key;
         }
-        if  ( body.cert )   {
+        if  (( body.cert )  &&
+             ( body.cert.match(/^---/) ))    {
             profile.cert = body.cert;
         }
-        if  ( body.ca ) {
+        if  (( body.ca )  &&
+             ( body.ca.match(/^---/) ))    {
             profile.ca = body.ca;
         }
         profile.save().then(() => {
