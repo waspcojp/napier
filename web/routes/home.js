@@ -37,7 +37,7 @@ const index =  async (req, res, next) => {
 				useSSL: (config.HTTPS_PORT && config.HTTPS_PORT > 0) ? true : false
 			});
 		}).catch((e) => {
-			console.log(e);
+			//console.log(e);
 			res.render('index', {
 				title: title,
 				msg_type: '',

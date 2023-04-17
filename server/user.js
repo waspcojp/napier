@@ -50,7 +50,7 @@ const   delProfile = (user, profile_name) => {
                     }
                 }
             }).then((profile) => {
-                console.log('delProfile', profile);
+                //console.log('delProfile', profile);
                 profile.destroy().then(() => {
                     done(true);
                 });
@@ -97,9 +97,8 @@ const   putProfile = (user, arg) => {
 }
 
 const   passwd = (user, old_pass, new_pass) => {
-    console.log('passwd', user.name, old_pass, new_pass);
+    //console.log('passwd', user.name, old_pass, new_pass);
     return new Promise((done, fail) => {
-        console.log('passwd');
         auth_user(user.name, old_pass).then((user) => {
             user.hash_password = bcrypt.hashSync(new_pass, SALT_ROUNDS);
             user.save().then(() => {

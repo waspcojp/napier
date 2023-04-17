@@ -8,10 +8,8 @@ const fs = require('fs');
 const https = require('https');
 
 const   do_auth = (session, message_id, user_name, password, body) => {
-    console.log('auth', body);
     return new Promise((done, fail) => {
         auth(user_name, password).then((user) => {
-            console.log('message_id', message_id);
             session.sendControl(message_id, {
                 status: 'OK'
             });
@@ -45,23 +43,18 @@ module.exports = class {
     }
     searchFreePort()    {
         let port;
-		console.log('searchFreePort()');
         for ( let i = this.port_range[0] ; i <= this.port_range[1] ; )    {
             if  ( !this.proxyPort[i - this.port_range[0]] )   {
-				console.log('test', i);
                 this.proxyPort[i - this.port_range[0]] = i;
                 let server = net.createServer();
-				console.log('createServer');
 				try {
 					server.listen(i);
                     port = server.address().port;
-                    console.log('port', port);
                     server.close();
                     return  (port);
 				} catch(e) {
-					console.log(e);
 					this.proxyPort[i - this.port_range[0]] = undefined;
-					console.log('error', i);
+					console.log('error', i, e);
                 }
             }
             i += 1;
@@ -70,12 +63,10 @@ module.exports = class {
         return  (port);
     }
     command(session, body, arg)  {
-        console.log({body});
         switch  ( body.method ) {
           case  'ping':
             {
                 let message_id = body.message_id;
-                console.log('ping');
                 session.sendControl(message_id, {
                     at: new Date(),
                     message_id: body.message_id
@@ -85,9 +76,7 @@ module.exports = class {
           case    'auth':
             {
                 let message_id = body.message_id;
-                console.log('auth');
                 do_auth(session, message_id, arg.user, arg.password, body).then((user) => {
-                    //console.log({user});
                     session.set_user(user);
                 }).catch(() => {
                 });
@@ -97,7 +86,6 @@ module.exports = class {
             {
                 let message_id = body.message_id;
                 passwd(session.user, arg.old, arg.new).then((flag) => {
-                    console.log({flag});
                     session.sendReturn(message_id, flag, 'OK', 'NG');
                 });
             }
@@ -105,7 +93,6 @@ module.exports = class {
           case  'profiles':
             {
                 let message_id = body.message_id;
-                console.log('profiles');
                 getProfiles(session.user).then((profiles) => {
                     session.sendControl(message_id, {
                         profiles: profiles
@@ -116,7 +103,6 @@ module.exports = class {
           case  'del_profile':
             {
                 let message_id = body.message_id;
-                console.log('del_profile', arg.name);
                 delProfile(session.user, arg.name).then((flag) => {
                     session.sendReturn(message_id, flag, 'OK', 'NG');
                 }).catch(() => {
@@ -127,7 +113,6 @@ module.exports = class {
           case  'put_profile':
             {
                 let message_id = body.message_id;
-                console.log('put_profile', arg);
                 putProfile(session.user, arg).then((flag) => {
                     session.sendReturn(message_id, flag, 'OK', 'NG');
                 }).catch(() => {
@@ -139,7 +124,6 @@ module.exports = class {
             {
                 let message_id = body.message_id;
                 let profile_name = arg.name;
-                console.log('start', session.user.name, profile_name);
                 getProfile(session.user, profile_name).then((profile) => {
                     let port;
                     if  ( profile.path.match(/^\d+$/) ) {
@@ -168,9 +152,7 @@ module.exports = class {
     }
     run()   {
         let ws;
-        console.log('open ws port', this.ws_port);
         if  ( cert_path )   {
-			console.log('use SSL', cert_path);
             let server = https.createServer({
                 cert: fs.readFileSync(`${cert_path}/${MY_DOMAIN}-cert.pem`),
                 key: fs.readFileSync(`${cert_path}/${MY_DOMAIN}.pem`)
@@ -182,11 +164,9 @@ module.exports = class {
             });
         }
         ws.on('connection', (socket) => {
-            console.log('connection');
             let session = new Session(socket);
             socket.on('message', (message) => {
                 let recv = TunnelConnection.decodeMessage(message);
-                //console.log({recv});
                 if  ( recv.channel == 0 )   {
                     let body;
                     let arg;
@@ -196,7 +176,6 @@ module.exports = class {
                     }
                     this.command(session, body, arg);
                 } else {
-                    //console.log('recv', recv.channel);
                     let local = session.channels[recv.channel];
                     if  ( local )   {
                         local.write(recv.body);
@@ -204,8 +183,6 @@ module.exports = class {
                         if  ( size > 0 )    {
                             session.send += size;
                         }
-                    } else {
-                        //console.log('no channel', recv.channel);
                     }
                 }
             });

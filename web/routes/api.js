@@ -10,9 +10,7 @@ const config = global.env;
 
 const password = (req, res, next) => {
     let body = req.body;
-    //console.log({req});
     let user_name = User.current(req);
-    console.log({user_name});
     passwd({name: user_name}, body.currentPassword, body.newPassword).then((flag) => {
         res.json({
             result: flag ? 'OK' : 'NG'
@@ -42,7 +40,6 @@ const getUser = (req, res, next) => {
 const putUser = (req, res, next) => {
     let user_name = User.current(req);
     let data = req.body;
-    console.log('putUser', user_name, data);
     User.get(user_name).then((user) => {
         user.mail = data.mail;
         user.save().then(() => {
@@ -60,7 +57,6 @@ router.put('/user', is_authenticated, putUser);
 
 router.post('/login', (req, res, next) => {
 	Passport.authenticate('local', (error, _user, info) => {
-        //console.log({_user});
 		if (error) {
 			return next(error);
         }
@@ -72,7 +68,7 @@ router.post('/login', (req, res, next) => {
         } else {
 			req.login(_user, (error, next) => {
                 if  ( error )   {
-                    console.log('error');
+                    //console.log('error');
                     res.json({
                         result: 'NG',
                         message: `user not found`
@@ -107,7 +103,6 @@ router.post('/logout', (req, res, next) => {
 });
 
 router.post('/signup', (req, res, next) => {
-    console.log('signup', req.body);
 	let user_name = req.body.user_name;
 	let password = req.body.password;
     let mail = req.body.mail;
@@ -153,7 +148,6 @@ router.get('/proxy', is_authenticated, (req, res, next) => {
 
 router.get('/profiles', is_authenticated, (req, res, next) => {
     let user_name = User.current(req);
-    console.log({user_name});
     User.get(user_name).then((user) => {
         if  ( user )    {
             Profile.findAll({
@@ -207,7 +201,6 @@ router.get('/profiles', is_authenticated, (req, res, next) => {
                         path: config.makeDefaultPath(config.MY_DOMAIN, user),
                         ssl: (config.HTTPS_PORT && config.HTTPS_PORT > 0) ? true : false
                     }));
-                    console.log(profiles);
                 }
 
                 res.json({

@@ -50,7 +50,7 @@ passport.deserializeUser((user, done) => {
 });
 
 const	is_authenticated = (req, res, next) => {
-	console.log(req.session);
+	//console.log(req.session);
 
 	if ( req.isAuthenticated() ) {
 		return (next());
@@ -69,8 +69,8 @@ const	auth_user = (name, password) => {
 				}
 			}).then((user) => {
 				//console.log(user);
-				console.log('hash', user.hash_password);
-				console.log('hash compare', bcrypt.compareSync(password, user.hash_password));
+				//console.log('hash', user.hash_password);
+				//console.log('hash compare', bcrypt.compareSync(password, user.hash_password));
 				if ( user ) {
 					if  (( password ) &&
 						 ( bcrypt.compareSync(password, user.hash_password) )) {
@@ -99,7 +99,7 @@ class User {
 				name: name
 			}
 		}
-		console.log({user_info});
+		//console.log({user_info});
 		Object.keys(user_info).forEach((key) => {
 			this[key] = user_info[key];
 		});
@@ -131,11 +131,11 @@ class User {
 				hash_password: this.hash_password,
 				mail: this.mail
 			}).then((user) => {
-				console.log(user);
+				//console.log(user);
 				this.user = user;
 				done(user);
 			}).catch((err) => {
-				console.log(err);
+				//console.log(err);
 			});
 		});
 	}
@@ -144,10 +144,10 @@ class User {
 		return new Promise((done, fail) => {
 			if	( this.user )	{
 				this.user.save().then((user) => {
-					console.log(user);
+					//console.log(user);
 					done(user);
 				}).catch((err) => {
-					console.log(err);
+					//console.log(err);
 				});
 			}
 		});
@@ -162,14 +162,14 @@ class User {
 	static check(name, password, mail) {
 		if	( NG_NAMES.indexOf(name) >= 0 )	{
 			return	new Promise((resolve, reject) => {
-				console.log('invalid name', name);
+				//console.log('invalid name', name);
 				reject(`invalid name: '${name}'`);
 			});
 		} else
 		if	(	( mail === undefined )
 			||	( mail === ''        ) )	{
 			return	new Promise((resolve, reject) => {
-				console.log('mail address not set');
+				//console.log('mail address not set');
 				reject('mail address not set');
 			});
 		} else {

@@ -73,7 +73,7 @@ module.exports = class {
         this.tunnel.sendData(channel, buff);
     }
     sendControl(message_id, body)   {
-        console.log('sendControl', message_id);
+        //console.log('sendControl', message_id);
         body.message_id = message_id;
         this.tunnel.sendControl(body);
     }
@@ -98,7 +98,7 @@ module.exports = class {
     }
 
     register(proxy) {
-        console.log('ssl', this.profile.ssl);
+        //console.log('ssl', this.profile.ssl);
         let src = this.profile.path;
         let target = `localhost:${this.localPort}/`;
 
@@ -111,7 +111,7 @@ module.exports = class {
         }
     }
     close(proxy) {
-        console.log('close', this.localPort);
+        //console.log('close', this.localPort);
         if  ( this.profile ) {
             proxy.unregister(this.profile.path);
             if  ( this.localServer )    {
@@ -120,20 +120,17 @@ module.exports = class {
         }
     }
     openLocal(){
-        console.log('proxyPort', this.localPort);
+        //console.log('proxyPort', this.localPort);
         let local = net.createServer();
         local.on('connection', (socket) => {
             let channel = this.searchFreeChannel();
             this.channels[channel] = socket;
-            console.log('connect', 'channel', channel);
             this.connect(channel);
             socket.on('data', (buff) => {
-                console.log('data', channel);
-                //console.log('buff', buff.toString());
                 this.sendData(channel, buff);
             });
             socket.on('close', (status) => {
-                console.log('close', channel);
+                //console.log('close', channel);
                 this.closeChannel(channel);
                 this.channels[channel] = undefined;
             })
