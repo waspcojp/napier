@@ -82,44 +82,6 @@ module.exports = class {
                 });
             }
             break;
-          case  'passwd':
-            {
-                let message_id = body.message_id;
-                passwd(session.user, arg.old, arg.new).then((flag) => {
-                    session.sendReturn(message_id, flag, 'OK', 'NG');
-                });
-            }
-            break;
-          case  'profiles':
-            {
-                let message_id = body.message_id;
-                getProfiles(session.user).then((profiles) => {
-                    session.sendControl(message_id, {
-                        profiles: profiles
-                    });
-                });
-            }
-            break;
-          case  'del_profile':
-            {
-                let message_id = body.message_id;
-                delProfile(session.user, arg.name).then((flag) => {
-                    session.sendReturn(message_id, flag, 'OK', 'NG');
-                }).catch(() => {
-                    session.sendReturn(message_id, true, 'NG');
-                });
-            }
-            break;
-          case  'put_profile':
-            {
-                let message_id = body.message_id;
-                putProfile(session.user, arg).then((flag) => {
-                    session.sendReturn(message_id, flag, 'OK', 'NG');
-                }).catch(() => {
-                    session.sendReturn(message_id, true, 'NG');
-                });
-            }
-            break;
           case  'start':
             {
                 let message_id = body.message_id;

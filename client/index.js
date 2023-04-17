@@ -117,69 +117,6 @@ const   clientOpen = (localPort, ws_url) => {
     return  (ws);
 }
 
-/*
-ws.on('open', (e) => {
-    console.log('open', e);
-    Api(ws, 'auth', {
-            user: 'ogochan',
-            password:  '***'
-            //password:  'ogochan'
-        },
-        (body) => {
-            console.log('body', body);
-            if  ( body.status == 'OK')  {
-                session_id = body.id;
-                Api(ws, 'profiles', null, 
-                    (body) => {
-                        console.log('profiles', body.profiles);
-                    });
-                Api(ws, 'passwd', {
-                    old: '***',
-                    new: 'ogochan'
-                },
-                (body) => {
-                    console.log('passwd', body);
-                });
-                Api(ws, 'del_profile', {
-                        name: 'real'
-                    },
-                    (body) => {
-                        console.log('del_profile', body);
-                        Api(ws, 'profiles', null, 
-                            (body) => {
-                                console.log('afre del profiles', body);
-                            }
-                        );
-                    }
-                );
-                Api(ws, 'put_profile', {
-                        name: 'vhost3',
-                        path: 'www.wasp.co.jp'
-                    },
-                    (body) => {
-                        console.log('put_profile', body);
-                        Api(ws, 'profiles', null, 
-                            (body) => {
-                                console.log('afre put profiles', body.profiles);
-                            }
-                        );
-                    }
-                );
-                Api(ws, 'start', {
-                        name: 'vhost1'
-                    },
-                    (body) => {
-                        if  ( body.status != 'OK')  {
-                            console.log('error:', body.error);
-                            ws.close();
-                        }
-                    });
-            } else {
-                ws.close();
-            }
-        });
-});
-*/
 
 module.exports = {
     clientOpen: clientOpen,
