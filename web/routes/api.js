@@ -60,7 +60,7 @@ router.put('/user', is_authenticated, putUser);
 
 router.post('/login', (req, res, next) => {
 	Passport.authenticate('local', (error, _user, info) => {
-        console.log({_user});
+        //console.log({_user});
 		if (error) {
 			return next(error);
         }
@@ -80,7 +80,7 @@ router.post('/login', (req, res, next) => {
                 } else {
                     let newProfile;
                     let user = _user.user;
-                    console.log({user}, new Date());
+                    //console.log({user}, new Date());
                     if  ( service.paidService )    {
                         newProfile = ( user.payLimitAt && user.payLimitAt > new Date()) ? true : false;
                     } else {

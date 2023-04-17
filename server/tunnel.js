@@ -139,9 +139,8 @@ module.exports = class {
             {
                 let message_id = body.message_id;
                 let profile_name = arg.name;
-                console.log('start', session.user, profile_name);
+                console.log('start', session.user.name, profile_name);
                 getProfile(session.user, profile_name).then((profile) => {
-                    console.log('start', profile.name);
                     let port;
                     if  ( profile.path.match(/^\d+$/) ) {
                         port = parseInt(profile.path);

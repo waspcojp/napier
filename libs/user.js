@@ -69,6 +69,7 @@ const	auth_user = (name, password) => {
 				}
 			}).then((user) => {
 				//console.log(user);
+				console.log('hash', user.hash_password, bcrypt.hashSync(password, SALT_ROUNDS));
 				if ( user ) {
 					if  (( password ) &&
 						 ( bcrypt.compareSync(password, user.hash_password) )) {

@@ -21,7 +21,7 @@ try {
 } catch(e) {
 	global.env.service = { paidService: false };
 }
-console.log(global.env);
+//console.log(global.env);
 
 const homeRouter = require('./routes/home');
 const apiRouter = require('./routes/api');
@@ -143,8 +143,6 @@ app.engine('spy', sprightlyExpress({
 }));
 app.set('views', './web/views');
 app.set('view engine', 'spy');
-
-console.log('/manage/public', (path.join(__dirname, './public')));
 
 app.use('/manage/dist', express.static(path.join(__dirname, './dist')));
 app.use('/manage/style', express.static(path.join(__dirname, './front/stylesheets')));
