@@ -2,10 +2,6 @@
 	<div class="brand-container">
         <a href="" class="brand-link">
             <img src="public/logo.svg" alt="Logo" class="brand-image opacity-80 shadow">
-            <span class="brand-text fw-light">Napier</span>
-        </a>
-        <a class="pushmenu mx-1" data-lte-toggle="sidebar-mini" href="#" role="button">
-            <i class="fas fa-angle-double-left"></i>
         </a>
     </div>
     <div class="sidebar">
