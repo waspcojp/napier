@@ -5,7 +5,7 @@
 		<base href="/manage/">
 		<link rel="stylesheet" href="public/bootstrap-icons/font/bootstrap-icons.css">
 		<link rel="stylesheet" href="style/style.css">
-		<script src="dist/common.js"></script>
+		<script src="dist/napier.js"></script>
 	</head>
 	<body class="layout-fixed" id="body">
 		<div id="home" style="width:100%;"

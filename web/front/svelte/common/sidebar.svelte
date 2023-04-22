@@ -6,7 +6,7 @@
     </div>
     <div class="sidebar">
 	    <nav class="mt-2">
-            <ul class="nav nav-pills nav-sidebar flex-column">
+            <ul class="nav nav-sidebar">
 			    <li class="nav-item">
 				    <a class={(current == 'profile')  ? 'nav-link active': 'nav-link'}
                             on:click="{() => {current = 'profile'}}">

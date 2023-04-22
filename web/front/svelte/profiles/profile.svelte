@@ -1,6 +1,6 @@
 <div class="card">
     <div class="card-header" on:click={click}>
-        <h3 class="card-title">{profile.name}</h3>
+        {profile.name}
     </div>
     <ProfileCard 
         {specs}

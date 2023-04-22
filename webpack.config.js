@@ -11,7 +11,7 @@ module.exports = {
 	context: path.resolve(__dirname, 'web/front/javascripts'),
     entry: {
 		index: './index.js',
-		common: './common.js'
+		napier: './napier.js'
 	},
     output: {
         path: path.resolve(__dirname, 'web/dist'),
