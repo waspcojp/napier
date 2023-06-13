@@ -53,9 +53,22 @@ const onListening = () => {
 server.on('error', onError);
 server.on('listening', onListening);
 
-proxy.run();
 
-console.log('tunnel run');
+//proxy.run();
+
+let run = false;
+setInterval(() => {
+    if  ( !run )    {
+        try {
+            proxy.run();
+            console.log('tunnel run');
+            run = true;
+        } catch (e) {
+            console.log('error', e);
+            run = false;
+        }
+    }
+}, 1000);
 /*
 Es({
     connection: {
