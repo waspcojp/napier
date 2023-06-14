@@ -140,10 +140,14 @@ module.exports = class {
                 } else {
                     let local = session.channels[recv.channel];
                     if  ( local )   {
-                        local.write(recv.body);
-                        let size = recv.body.length - 1;
-                        if  ( size > 0 )    {
-                            session.send += size;
+                        try {
+                            local.write(recv.body);
+                            let size = recv.body.length - 1;
+                            if  ( size > 0 )    {
+                                session.send += size;
+                            }
+                        } catch (e) {
+                            console.log('closed socket', e);
                         }
                     }
                 }
@@ -153,6 +157,10 @@ module.exports = class {
                 session.close(this.proxy);
             });
         });
+        ws.on('error', (e) => {
+            console.log('ws error', e);
+            session.close(this.proxy);
+        })
         ws.on('close', () => {
             session.close(this.proxy);
         })
