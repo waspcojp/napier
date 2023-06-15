@@ -11,16 +11,13 @@ const axios = wrapper(_axios.create({ jar }));
 
 
 const LOCAL_PORT = 4000;
-const HOST = 'localhost';
-const PORT = 8001;
+const URL = 'http://localhost:8000';
 
 const   parseOptions = () => {
     program.option  ('--config <config filename>', 'config file');
     program.option  ('--user <user>',              'user name');
     program.option  ("--password <password>",              "password");
-    program.option  ('--host <host>',              'tunnel host');
-    program.option  ('--port <port>',              'tunnel port');
-    program.option  ('--secure',                   'secure connection');
+    program.option  ('--url <URL>',                'server URL');
     program.option  ('--local-port <localPort>',   'local port');
     program.option  ('--re-connect',               're-connect server');
     program.option  ('--web-server',               'start web server');
@@ -49,8 +46,7 @@ const   parseOptions = () => {
             opts = config;
         } catch (e) {}
     }
-    opts['host'] ||= HOST;
-    opts['port'] ||= PORT;
+    opts['url'] ||= URL;
     opts['localPort'] ||= LOCAL_PORT;
     opts['reConnect'] ||= false;
     opts['webServer'] ||= false;
@@ -72,7 +68,8 @@ const   tunnel = (opts, ws_url, profile) => {
             },
             (body) => {
                 console.log('body', body);
-                if  ( body.status == 'OK')  {
+                if  (( body ) &&
+                     ( body.status == 'OK' ))  {
                     session_id = body.id;
                     ws.Api('start', {
                             name: profile
@@ -102,23 +99,27 @@ const   tunnel = (opts, ws_url, profile) => {
 const makeConnection = (opts, profile) => {
     let serverSpecs;
 
-    axios.post(`${opts.host}/manage/api/login`, {
+    axios.post(`${opts.url}/manage/api/login`, {
         user_name: opts.user,
         password:  opts.password
     }).then((res) => {
-        serverSpecs = res.data.specs;
-        axios.get(`${opts.host}/manage/api/proxy`).then((res) => {
-            //console.log(res.data);
-            if  ( res.data.result === 'OK' )    {
-                tunnel(opts, res.data.url, profile);
-            } else {
-                console.log('ready fail');
-            }
-        }).catch((e) => {
-            console.log(e);
-        })
+        if  ( res.data.result === 'OK' )    {
+            serverSpecs = res.data.specs;
+            axios.get(`${opts.url}/manage/api/proxy`).then((res) => {
+                //console.log(res.data);
+                if  ( res.data.result === 'OK' )    {
+                    tunnel(opts, res.data.url, profile);
+                } else {
+                    console.log('ready fail');
+                }
+            }).catch((e) => {
+                console.log('proxy network error');
+            })
+        } else {
+            console.log('login fail', res.data.message);
+        }
     }).catch ((e) => {
-        console.log(e);
+        console.log('login connection refused');
     })
 }
 

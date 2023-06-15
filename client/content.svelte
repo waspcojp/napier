@@ -147,7 +147,6 @@ img {
 
 @media (min-width: 768px) {
 	ul {
-		display: flex;
 		flex-wrap: wrap;
 	}
 	ul li {
@@ -166,6 +165,7 @@ img {
 	}
 }
         </style>
+		<link rel="stylesheet" href="/style.css">
 	</head>
 	<body>
 		<main>

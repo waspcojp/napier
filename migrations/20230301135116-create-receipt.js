@@ -9,14 +9,14 @@ module.exports = {
         primaryKey: true,
         type: Sequelize.INTEGER
       },
+      userId: {
+        type: Sequelize.INTEGER
+      },
       amount: {
-        type: Sequelize.DECIMAL
+        type: Sequelize.DECIMAL(12)
       },
       payedAt: {
         type: Sequelize.DATE
-      },
-      userId: {
-        type: Sequelize.INTEGER
       },
       createdAt: {
         allowNull: false,

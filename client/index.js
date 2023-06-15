@@ -75,28 +75,33 @@ const   clientOpen = (localPort, ws_url) => {
                 Recv.emit(`recv:${body.message_id}`, body);
             } else {
                 if  ( recv.body )   {
-                    //console.log('channel data', recv.channel);
-                    channels[recv.channel].write(recv.body);
+                    if  ( channels[recv.channel] )  {
+                        channels[recv.channel].write(recv.body);
+                    } else {
+                        console.log('closed channel', recv.channel);
+                    }
                 } else {
                     switch( recv.type ) {
                       case  TYPE_CLOSE:
                         if  ( channels[recv.channel] )  {
-                            //console.log('channel close', recv.channel);
-                            //channels[recv.channel].end();
                             channels[recv.channel] = undefined;
                         }
                         break;
                       case  TYPE_CONNECT:
                         //console.log('channel connect', recv.channel);
-                        let localSocket = net.createConnection({
-                            host: 'localhost',
-                            port: localPort
-                        });
-                        localSocket.on('data', (buff) => {
-                            //console.log('buff', buff.toString());
-                            ws.send(encodeChannelPacket(recv.channel, TYPE_DATA, buff));
-                        });
-                        channels[recv.channel] = localSocket;
+                        try {
+                            let localSocket = net.createConnection({
+                                host: 'localhost',
+                                port: localPort
+                            });
+                            localSocket.on('data', (buff) => {
+                                //console.log('buff', buff.toString());
+                                ws.send(encodeChannelPacket(recv.channel, TYPE_DATA, buff));
+                            });
+                            channels[recv.channel] = localSocket;
+                        } catch (e) {
+                            console.log('local connect error', e);
+                        }
                         break;
                     }
                 }

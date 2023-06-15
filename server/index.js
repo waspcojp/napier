@@ -35,6 +35,7 @@ const onError = (error) => {
         process.exit(1);
         break;
       default:
+        console.log('server.onError', error);
         throw error;
     }
 }
@@ -50,9 +51,9 @@ const onListening = () => {
       : 'port ' + addr.port;
     debug('Listening on ' + bind);
 }
+
 server.on('error', onError);
 server.on('listening', onListening);
-
 
 //proxy.run();
 

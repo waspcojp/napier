@@ -851,7 +851,7 @@ let server = null;
 const start = (port, root, option) => {
 	option ||= {};
 	option['public'] = root;
-	console.log({option});
+	//console.log({option});
 
 	if	( !server )	{
 		server = http.createServer((req, res) => {
@@ -861,7 +861,7 @@ const start = (port, root, option) => {
 		});
 
 		server.listen(port, () => {
-			console.log('start web server');
+			//console.log('start web server');
 		});
 	}
 }
@@ -871,7 +871,7 @@ const stop = () => {
 			server.close(() => {
 				resolve();
 				server = null;
-				console.log('web server stoppped');
+				//console.log('web server stoppped');
 			});
 		} catch {
 			reject();
