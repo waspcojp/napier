@@ -7,7 +7,7 @@ const http = require('http');
 const {promisify} = require('util');
 const path = require('path');
 const {createHash} = require('crypto');
-const {realpath, lstat, createReadStream, readdir, readFileSync} = require('fs');
+const {realpath, lstat, createReadStream, readdir, readFileSync, existsSync} = require('fs');
 
 const ORIGINAL = '../node_modules/serve-handler/src';
 
@@ -67,7 +67,7 @@ const sourceMatches = (source, requestPath, allowSegments) => {
 
 	if (allowSegments) {
 		const normalized = slashed.replace('*', '(.*)');
-		const expression = pathToRegExp(normalized, keys);
+		const expression = pathToRegExp.pathToRegexp(normalized, keys);
 
 		results = expression.exec(resolvedPath);
 
@@ -114,7 +114,6 @@ const toTarget = (source, destination, previousPath) => {
 const applyRewrites = (requestPath, rewrites = [], repetitive) => {
 	// We need to copy the array, since we're going to modify it.
 	const rewritesCopy = rewrites.slice();
-
 	// If the method was called again, the path was already rewritten
 	// so we need to make sure to return it.
 	const fallback = repetitive ? requestPath : null;
@@ -122,11 +121,9 @@ const applyRewrites = (requestPath, rewrites = [], repetitive) => {
 	if (rewritesCopy.length === 0) {
 		return fallback;
 	}
-
 	for (let index = 0; index < rewritesCopy.length; index++) {
 		const {source, destination} = rewrites[index];
 		const target = toTarget(source, destination, requestPath);
-
 		if (target) {
 			// Remove rules that were already applied
 			rewritesCopy.splice(index, 1);
@@ -508,7 +505,7 @@ const mdInit = (_path) => {
 	_markdown.renderer.rules.table_open = () => {
 		return '<table class="table table-striped">\n';
 	};
-
+/*
 	_markdown.renderer.rules.paragraph_open =
 	_markdown.renderer.rules.heading_open = (tokens, idx, options, env, slf) => {
 		let line;
@@ -519,21 +516,26 @@ const mdInit = (_path) => {
 		}
 		return slf.renderToken(tokens, idx, options, env, slf);
 	}
+*/
 	return(_markdown);
 }
 
-const renderMarkdown = async (absolutePath) => {
+const renderMarkdown = (absolutePath, toplevel) => {
 	const App = require('./content.svelte').default;
 	try {
 		let markdown = mdInit('');
 		let source = readFileSync(absolutePath, 'utf-8');
 		let inner_html = markdown.render(source);
-		let {html} = App.render({
-			procs: {
-				html: inner_html
-			}
-		});
-		return	(html);
+		if	( toplevel )	{
+			let {html} = App.render({
+				procs: {
+					html: inner_html
+				}
+			});
+			return	(html);
+		} else {
+			return	(inner_html);
+		}
 	} catch(err)	{
 		console.log('markdown render error', err);
 		return	('');
@@ -621,12 +623,112 @@ const getHandlers = methods => Object.assign({
 	sendError
 }, methods);
 
+const _eval = (s, _opts) => {
+	let opts = (_opts && _opts.length > 0) ? _opts : undefined;
+	//console.log('_eval', s, ':', opts);
+	try {
+		let ret = eval(s).toString();
+		//console.log('ret', ret);
+		return	ret;
+	} catch (e) {
+		console.log('eval>', s);
+		console.log(e);
+		return	'';
+	}
+}
+const parseMacro = (s) => {
+	let token = []
+	while	( s.length > 0 )	{
+		//console.log('s', s);
+		//console.log('token', token);
+		let ms;
+		if	( ms = s.match(/^(\s+)/) )	{
+			s = s.slice(ms[1].length);
+		} else
+		if	( ms = s.match(/^([\w,\/][\w,\/,\.,>]*)[\s,\(,\),\,,\',\"]|^([\w,\/][\w,\/,\.,>]*)$|^(\d+)[\s,\(,\),\,,\',\"]|^(\d+)$|^\'(.*)\'|^\"(.*)\"/) )	{
+			//console.log('ms', ms);
+			//console.log('push', ms[1]);
+			let word = ms[1] || ms[2] || ms[3] || ms[4] || ms[5] || ms[6];
+			token.push(word);
+			if	( ms[5] || ms[6] )	{
+				s = s.slice(word.length + 2);
+			} else {
+				s = s.slice(word.length);
+			}
+		} else {
+			//console.log('push', s.slice(0,1));
+			token.push(s.slice(0,1));
+			s = s.slice(1);
+		}
+	}
+	//console.log('token', token);
+	return	(token);
+}
+const loadContent = (thisPath, config, toplevel, opts) => {
+	//console.log('load:', thisPath, opts);
+	let content;
+	if	( ( config ) && ( config.markdown ) && ( thisPath.match(/\.md/g) ) )	{
+		content = renderMarkdown(thisPath, toplevel, opts);
+	} else
+	if	( thisPath.match(/\.html/g) )	{
+		let file = readFileSync(thisPath, 'utf-8');
+		content = file.replaceAll(/\{\{(.*?)\}\}/g, (_, macro) => {
+			let verb;
+			let reference;
+			let _opts;
+			//console.log('macro', macro);
+			if	( macro.match(/^#/) )	{
+				return	'';
+			}
+			if	( macro.match(/^.*>/) ) {
+				let words = parseMacro(macro);
+				verb = words[0];
+				reference = words[1];
+				_opts = words.slice(2);
+			} 
+			try {
+				//console.log('verb:', verb, ':', reference, ':', cont);
+				if	( verb === '>' )	{
+					let name = reference.trim();
+					let componentPath;
+					//console.log('path', path.normalize(name), config['public']);
+					if	( name.match(/^\//) )	{
+						componentPath = path.join(config['public'], path.normalize(name).slice(1));
+					} else {
+						componentPath = path.join(path.dirname(thisPath), path.normalize(name));
+					}
+					//console.log('path', componentPath);
+					if ( existsSync(componentPath) ) {
+						//console.log('opts', _opts);
+						return loadContent(componentPath, config, false, _opts);
+					} else {
+						console.log('component not found', componentPath);
+						return	'';
+					}
+				}
+				if	( verb === 'eval>' )	{
+					let es = macro.replace(/^\s*eval\s*>/,'');
+					//console.log('eval', es);
+					return	_eval(es, ops);
+				}
+				//console.log('eval');
+				return _eval(`${macro}`, opts);
+			} catch(e) {
+				return	'';
+			}
+		});
+		//console.log(content);
+	}
+	return	(content);
+}
+
 const handler = async (request, response, config = {}, methods = {}) => {
 	const cwd = process.cwd();
 	const current = config.public ? path.resolve(cwd, config.public) : cwd;
 	const handlers = getHandlers(methods);
 
-//console.log('url', request.url);
+	//console.log(config);
+	//console.log('url', request.url);
 
 	let relativePath = null;
 	let acceptsJSON = null;
@@ -645,7 +747,6 @@ const handler = async (request, response, config = {}, methods = {}) => {
 		});
 	}
 	let absolutePath = path.join(current, relativePath);
-//console.log('absolutePath', absolutePath);
 
 	// Prevent path traversal vulnerabilities. We could do this
 	// by ourselves, but using the package covers all the edge cases.
@@ -658,6 +759,7 @@ const handler = async (request, response, config = {}, methods = {}) => {
 	}
 
 	const cleanUrl = applicable(relativePath, config.cleanUrls);
+/*
 	const redirect = shouldRedirect(relativePath, config, cleanUrl);
 
 	if (redirect) {
@@ -668,7 +770,7 @@ const handler = async (request, response, config = {}, methods = {}) => {
 		response.end();
 		return;
 	}
-
+*/
 	let stats = null;
 
 	// It's extremely important that we're doing multiple stat calls. This one
@@ -692,7 +794,6 @@ const handler = async (request, response, config = {}, methods = {}) => {
 			}
 		}
 	}
-
 	const rewrittenPath = applyRewrites(relativePath, config.rewrites);
 
 	if (!stats && (cleanUrl || rewrittenPath)) {
@@ -708,7 +809,6 @@ const handler = async (request, response, config = {}, methods = {}) => {
 			}
 		}
 	}
-
 	if (!stats) {
 		try {
 			stats = await handlers.lstat(absolutePath);
@@ -782,16 +882,14 @@ const handler = async (request, response, config = {}, methods = {}) => {
 	//	read contents here!!
 	const headers = await getHeaders(handlers, config, current, absolutePath, stats);
 
-	if	( ( config.markdown ) && ( absolutePath.match(/\.md/g) ) )	{
-		let content = await renderMarkdown(absolutePath);
-		if	( content )	{
-			response.statusCode = 200;
-			response.setHeader('Content-Type', 'text/html; charset=utf-8');
-			response.end(content);
-	
-			return;
-		}
+	let content = loadContent(absolutePath, config, true);
+	if	( content )	{
+		response.statusCode = 200;
+		response.setHeader('Content-Type', 'text/html; charset=utf-8');
+		response.end(content);
 		stats = null;
+	
+		return;
 	}
 	const streamOpts = {};
 
@@ -848,9 +946,44 @@ const handler = async (request, response, config = {}, methods = {}) => {
 
 let server = null;
 
+const readMap = (root) => {
+	const filename = path.join(root, 'map.rules');
+	let rewrite = [];
+	let redirect = [];
+
+	if	( existsSync(filename) )	{
+		let file = readFileSync(filename, 'utf-8');
+		let items;
+		for	( let line of file.split('\n') )	{
+			if	( items = line.split(/\s+/) )	{
+				//console.log(items);
+				if	( items[0].match(/rewriterule/i) )	{
+					rewrite.push({
+						source: items[1],
+						destination: items[2]
+					});
+				} else
+				if	( items[0].match(/redirectrule/i) )	{
+					redirect.push({
+						source: items[1],
+						destination: items[2]
+					});
+				}
+			}
+		}
+	}
+	return	({
+		rewrite: rewrite,
+		redirect: redirect
+	});
+}
+
 const start = (port, root, option) => {
 	option ||= {};
 	option['public'] = root;
+	let {rewrite, redirect} = readMap(root);
+	option['rewrites'] = rewrite;
+	option['redirects'] = redirect;
 	//console.log({option});
 
 	if	( !server )	{
