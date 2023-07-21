@@ -54,17 +54,15 @@ const	getContent = (req, res) => {
 		let	content;
 		if	( file_path.match(/\.html$/) )	{
 			if	( fs.existsSync(file_path) )	{
-				if	( fs.existsSync(file_path) )	{
-					content = sprightly.sprightly(file_path, {
-						env: global.env }, {
-							cache: false
-						});
-					res.set('Content-Type', 'text/html');
-					res.send(content);
-				} else {
-					console.log(e);
-					res.status(404).send('<h1>page not found</h1>');
-				}
+				content = sprightly.sprightly(file_path, {
+					env: global.env }, {
+						cache: false
+					});
+				res.set('Content-Type', 'text/html');
+				res.send(content);
+			} else {
+				console.log(e);
+				res.status(404).send('<h1>page not found</h1>');
 			}
 		} else {
 			let mime_type = mime.getType(file_path);

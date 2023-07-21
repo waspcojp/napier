@@ -11,7 +11,6 @@ const axios = wrapper(_axios.create({ jar }));
 
 
 const LOCAL_PORT = 4000;
-const URL = 'http://localhost:8000';
 
 const   parseOptions = () => {
     program.option  ('--config <config filename>', 'config file');
@@ -46,7 +45,6 @@ const   parseOptions = () => {
             opts = config;
         } catch (e) {}
     }
-    opts['url'] ||= URL;
     opts['localPort'] ||= LOCAL_PORT;
     opts['reConnect'] ||= false;
     opts['webServer'] ||= false;
@@ -136,18 +134,20 @@ const   main = () => {
         }
         startWebServer(opts.localPort, opts.documentRoot, config);
     }
-    if  ( opts.reConnect )  {
-        setInterval(() => {
-            if  ( closed )  {
-                try {
-                    makeConnection(opts, profile);
-                } catch (e) {
-                    console.log('error', e);
+    if  ( opts.url )    {
+        if  ( opts.reConnect )  {
+            setInterval(() => {
+                if  ( closed )  {
+                    try {
+                        makeConnection(opts, profile);
+                    } catch (e) {
+                        console.log('error', e);
+                    }
                 }
-            }
-        }, 1000);
-    } else {
-        makeConnection(opts, profile);
+            }, 1000);
+        } else {
+            makeConnection(opts, profile);
+        }
     }
 }
 

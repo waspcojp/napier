@@ -84,6 +84,8 @@ const   clientOpen = (localPort, ws_url) => {
                     switch( recv.type ) {
                       case  TYPE_CLOSE:
                         if  ( channels[recv.channel] )  {
+                            //console.log('channel close', recv.channel);
+                            channels[recv.channel].destroy();
                             channels[recv.channel] = undefined;
                         }
                         break;
@@ -98,6 +100,10 @@ const   clientOpen = (localPort, ws_url) => {
                                 //console.log('buff', buff.toString());
                                 ws.send(encodeChannelPacket(recv.channel, TYPE_DATA, buff));
                             });
+                            localSocket.on('error', () => {
+                                localSocket.destroy();
+                                localSocket = undefined;
+                            })
                             channels[recv.channel] = localSocket;
                         } catch (e) {
                             console.log('local connect error', e);

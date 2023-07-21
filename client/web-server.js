@@ -25,6 +25,9 @@ const parseRange = require('range-parser');
 // Other
 const errorTemplate = require(`${ORIGINAL}/error`);
 
+// EJS support
+const ejs = require('ejs');
+
 // markdown support
 const MarkdownIt = require('markdown-it');
 const Emoji = require("markdown-it-emoji");
@@ -43,6 +46,24 @@ require("prismjs/components/prism-python");
 require("prismjs/components/prism-shell-session");
 
 const etags = new Map();
+
+const pathParse = (url_path) => {
+	let el = url_path.split('?');
+	let file = el[0];
+	let params = {};
+	if	( el[1] ) {
+		let parts = el[1].split('&');
+		for ( let part of parts )	{
+			let p = part.split('=');
+			params[p[0]] = p[1];
+		}
+	}
+	return	({
+		pathname: file,
+		params: params
+	});
+}
+
 
 const calculateSha = (handlers, absolutePath) =>
 	new Promise((resolve, reject) => {
@@ -487,61 +508,6 @@ const renderDirectory = async (current, acceptsJSON, handlers, methods, config, 
 	return {directory: output};
 };
 
-const mdInit = (_path) => {
-	let dir = path.dirname(_path);
-	let _markdown = new MarkdownIt({
-			html:         true,        // Enable HTML tags in source
-			xhtmlOut:     false,        // Use '/' to close single tags (<br />)
-			breaks:       false,        // Convert '\n' in paragraphs into <br>
-			linkify:      true,         // autoconvert URL-like texts to links
-			typographer:  true,         // Enable smartypants and other sweet transforms
-		})
-		.use((Emoji))
-		.use((Prism), {
-			plugins: [
-				'line-numbers'
-			],
-			defaultLanguage: 'clike'});
-	_markdown.renderer.rules.table_open = () => {
-		return '<table class="table table-striped">\n';
-	};
-/*
-	_markdown.renderer.rules.paragraph_open =
-	_markdown.renderer.rules.heading_open = (tokens, idx, options, env, slf) => {
-		let line;
-		if (tokens[idx].map && tokens[idx].level === 0) {
-			line = tokens[idx].map[0];
-			tokens[idx].attrJoin('class', 'line');
-			tokens[idx].attrSet('data-line', String(line));
-		}
-		return slf.renderToken(tokens, idx, options, env, slf);
-	}
-*/
-	return(_markdown);
-}
-
-const renderMarkdown = (absolutePath, toplevel) => {
-	const App = require('./content.svelte').default;
-	try {
-		let markdown = mdInit('');
-		let source = readFileSync(absolutePath, 'utf-8');
-		let inner_html = markdown.render(source);
-		if	( toplevel )	{
-			let {html} = App.render({
-				procs: {
-					html: inner_html
-				}
-			});
-			return	(html);
-		} else {
-			return	(inner_html);
-		}
-	} catch(err)	{
-		console.log('markdown render error', err);
-		return	('');
-	}
-}
-
 const sendError = async (absolutePath, response, acceptsJSON, current, handlers, config, spec) => {
 	const {err: original, message, code, statusCode} = spec;
 
@@ -623,8 +589,88 @@ const getHandlers = methods => Object.assign({
 	sendError
 }, methods);
 
+
+const mdInit = (_path) => {
+	let dir = path.dirname(_path);
+	let _markdown = new MarkdownIt({
+			html:         true,        // Enable HTML tags in source
+			xhtmlOut:     false,        // Use '/' to close single tags (<br />)
+			breaks:       false,        // Convert '\n' in paragraphs into <br>
+			linkify:      true,         // autoconvert URL-like texts to links
+			typographer:  true,         // Enable smartypants and other sweet transforms
+		})
+		.use((Emoji))
+		.use((Prism), {
+			plugins: [
+				'line-numbers'
+			],
+			defaultLanguage: 'clike'});
+	_markdown.renderer.rules.table_open = () => {
+		return '<table class="table table-striped">\n';
+	};
+/*
+	_markdown.renderer.rules.paragraph_open =
+	_markdown.renderer.rules.heading_open = (tokens, idx, options, env, slf) => {
+		let line;
+		if (tokens[idx].map && tokens[idx].level === 0) {
+			line = tokens[idx].map[0];
+			tokens[idx].attrJoin('class', 'line');
+			tokens[idx].attrSet('data-line', String(line));
+		}
+		return slf.renderToken(tokens, idx, options, env, slf);
+	}
+*/
+	return(_markdown);
+}
+
+const renderMarkdown = (absolutePath, toplevel) => {
+	const App = require('./content.svelte').default;
+	try {
+		let markdown = mdInit('');
+		let source = readFileSync(absolutePath, 'utf-8');
+		let inner_html = markdown.render(source);
+		if	( toplevel )	{
+			let {html} = App.render({
+				procs: {
+					html: inner_html
+				}
+			});
+			return	(html);
+		} else {
+			return	(inner_html);
+		}
+	} catch(err)	{
+		console.log('markdown render error', err);
+		return	('');
+	}
+}
+
+let current;	//	current content path
+
+const renderEJS = (absolutePath, config, toplevel, opts) => {
+	//console.log('render EJS', absolutePath, opts);
+	try {
+		let source = readFileSync(absolutePath, 'utf-8');
+		let inner_html = ejs.render(source, { opts: opts }, {
+			filename: absolutePath
+		});
+		if	( toplevel )	{
+			let {html} = App.render({
+				procs: {
+					html: inner_html
+				}
+			});
+			return	(html);
+		} else {
+			return	(inner_html);
+		}
+	} catch(err)	{
+		console.log('EJS render error', err);
+		return	('');
+	}	
+}
 const _eval = (s, _opts) => {
-	let opts = (_opts && _opts.length > 0) ? _opts : undefined;
+	let opts = _opts ? _opts : undefined;
 	//console.log('_eval', s, ':', opts);
 	try {
 		let ret = eval(s).toString();
@@ -638,41 +684,35 @@ const _eval = (s, _opts) => {
 }
 const parseMacro = (s) => {
 	let token = []
-	while	( s.length > 0 )	{
-		//console.log('s', s);
-		//console.log('token', token);
-		let ms;
-		if	( ms = s.match(/^(\s+)/) )	{
-			s = s.slice(ms[1].length);
-		} else
-		if	( ms = s.match(/^([\w,\/][\w,\/,\.,>]*)[\s,\(,\),\,,\',\"]|^([\w,\/][\w,\/,\.,>]*)$|^(\d+)[\s,\(,\),\,,\',\"]|^(\d+)$|^\'(.*)\'|^\"(.*)\"/) )	{
-			//console.log('ms', ms);
-			//console.log('push', ms[1]);
-			let word = ms[1] || ms[2] || ms[3] || ms[4] || ms[5] || ms[6];
-			token.push(word);
-			if	( ms[5] || ms[6] )	{
-				s = s.slice(word.length + 2);
-			} else {
-				s = s.slice(word.length);
-			}
-		} else {
-			//console.log('push', s.slice(0,1));
-			token.push(s.slice(0,1));
-			s = s.slice(1);
+	let ms;
+	//console.log('input', s);
+	if	( ms = s.match(/^(>)\s+([\/,\.,\w]+)\s*(.*)/s) )	{
+		//console.log('ms',ms);
+		for	( let i = 1; i < ms.length ; i += 1)	{
+			token.push(ms[i]);
 		}
+	} else
+	if  ( ms = s.match(/^(>)\s*/))	{
+		token.push(ms[1]);
+	} else {
+		token.push(s);
 	}
 	//console.log('token', token);
 	return	(token);
 }
 const loadContent = (thisPath, config, toplevel, opts) => {
-	//console.log('load:', thisPath, opts);
+	//console.log('load:', thisPath);
+	//console.log('opts:', opts);
 	let content;
 	if	( ( config ) && ( config.markdown ) && ( thisPath.match(/\.md/g) ) )	{
 		content = renderMarkdown(thisPath, toplevel, opts);
 	} else
+	if	( thisPath.match(/\.ejs/g) )	{
+		content = renderEJS(thisPath, config, toplevel, opts);
+	} else
 	if	( thisPath.match(/\.html/g) )	{
 		let file = readFileSync(thisPath, 'utf-8');
-		content = file.replaceAll(/\{\{(.*?)\}\}/g, (_, macro) => {
+		content = file.replaceAll(/\{\{(.*?)\}\}/sg, (_, macro) => {
 			let verb;
 			let reference;
 			let _opts;
@@ -682,38 +722,46 @@ const loadContent = (thisPath, config, toplevel, opts) => {
 			}
 			if	( macro.match(/^.*>/) ) {
 				let words = parseMacro(macro);
+				//console.log({words});
 				verb = words[0];
 				reference = words[1];
-				_opts = words.slice(2);
+				if	( words[2] )	{
+					try {
+						_opts = Function(`return (${words[2]});`)();
+						//console.log('_opts', words[2], _opts);
+					} catch(e) {
+						console.log('eval', words[2]);
+						console.log(e);
+					}
+				}
 			} 
 			try {
-				//console.log('verb:', verb, ':', reference, ':', cont);
+				//console.log('verb:', verb, ':', reference, ':', _opts);
 				if	( verb === '>' )	{
-					let name = reference.trim();
+					let name;
+					if	( reference )	{
+						name = reference.trim();
+					} else {
+						name = opts.pathname;
+					}
+					//console.log({name});
 					let componentPath;
-					//console.log('path', path.normalize(name), config['public']);
 					if	( name.match(/^\//) )	{
 						componentPath = path.join(config['public'], path.normalize(name).slice(1));
 					} else {
 						componentPath = path.join(path.dirname(thisPath), path.normalize(name));
 					}
-					//console.log('path', componentPath);
 					if ( existsSync(componentPath) ) {
-						//console.log('opts', _opts);
 						return loadContent(componentPath, config, false, _opts);
 					} else {
 						console.log('component not found', componentPath);
 						return	'';
 					}
+				} else {
+					return _eval(`${macro}`, opts);
 				}
-				if	( verb === 'eval>' )	{
-					let es = macro.replace(/^\s*eval\s*>/,'');
-					//console.log('eval', es);
-					return	_eval(es, ops);
-				}
-				//console.log('eval');
-				return _eval(`${macro}`, opts);
 			} catch(e) {
+				console.log(e);
 				return	'';
 			}
 		});
@@ -724,7 +772,6 @@ const loadContent = (thisPath, config, toplevel, opts) => {
 
 const handler = async (request, response, config = {}, methods = {}) => {
 	const cwd = process.cwd();
-	const current = config.public ? path.resolve(cwd, config.public) : cwd;
 	const handlers = getHandlers(methods);
 
 	//console.log(config);
@@ -732,6 +779,7 @@ const handler = async (request, response, config = {}, methods = {}) => {
 
 	let relativePath = null;
 	let acceptsJSON = null;
+	current = config.public ? path.resolve(cwd, config.public) : cwd;
 
 	if (request.headers.accept) {
 		acceptsJSON = request.headers.accept.includes('application/json');
@@ -740,6 +788,7 @@ const handler = async (request, response, config = {}, methods = {}) => {
 	try {
 		relativePath = decodeURIComponent(url.parse(request.url).pathname);
 	} catch (err) {
+		console.log(err);
 		return sendError('/', response, acceptsJSON, current, handlers, config, {
 			statusCode: 400,
 			code: 'bad_request',
@@ -795,8 +844,10 @@ const handler = async (request, response, config = {}, methods = {}) => {
 		}
 	}
 	const rewrittenPath = applyRewrites(relativePath, config.rewrites);
-
-	if (!stats && (cleanUrl || rewrittenPath)) {
+	//console.log({rewrittenPath});
+	//console.log({stats});
+//	if (!stats && (cleanUrl || rewrittenPath)) {	元々のロジックでは、素のHTMLがない時だけrewriteが発動していた。テンプレート適用機能{{>}}のために潰す
+	if (cleanUrl || rewrittenPath) {
 		try {
 			const related = await findRelated(current, relativePath, rewrittenPath, handlers.lstat);
 
@@ -879,10 +930,16 @@ const handler = async (request, response, config = {}, methods = {}) => {
 		stats = await handlers.lstat(absolutePath);
 	}
 
+	//
 	//	read contents here!!
+	//
 	const headers = await getHeaders(handlers, config, current, absolutePath, stats);
-
-	let content = loadContent(absolutePath, config, true);
+	let params = pathParse(request.url).params;
+	let content = loadContent(absolutePath, config, true, {
+		params: params,
+		pathname: relativePath,
+		current: current
+	});
 	if	( content )	{
 		response.statusCode = 200;
 		response.setHeader('Content-Type', 'text/html; charset=utf-8');
@@ -985,6 +1042,7 @@ const start = (port, root, option) => {
 	option['rewrites'] = rewrite;
 	option['redirects'] = redirect;
 	//console.log({option});
+	thisConfig = option;
 
 	if	( !server )	{
 		server = http.createServer((req, res) => {
