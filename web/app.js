@@ -16,6 +16,11 @@ const fs = require('fs');
 const {loadContent, readMap, applyRewrites} = require('../libs/web-server')
 
 global.env = require('../config/server');
+try {
+	global.env.service = require('../config/service');
+} catch(e) {
+	console.log('service not found')
+}
 
 let option = [];
 
