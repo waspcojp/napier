@@ -15,34 +15,25 @@ const mime = require('mime');
 const fs = require('fs');
 const {loadContent, readMap, applyRewrites} = require('../libs/web-server')
 
-global.env = require('../config/server');
-try {
-	global.env.service = require('../config/service');
-} catch(e) {
-	global.env.service = {};
-	console.log('service not found')
-}
-
 let option = [];
 
 const initEnv = () => {
+	global.env = require('../config/server');
 	try {
 		global.env.service = require('../config/service');
 	} catch(e) {
 		global.env.service = { paidService: false };
+		console.log('service not found')
 	}
 	//console.log(global.env);
 	option ||= {};
 	option['public'] = global.env.content_path;
 	let {rewrite, redirect} = readMap(global.env.content_path);
-	console.log({rewrite});
+	//console.log({rewrite});
 	option['rewrites'] = rewrite;
 	option['redirects'] = redirect;
 	option['markdown'] = true;
 }
-
-const homeRouter = require('./routes/home');
-const apiRouter = require('./routes/api');
 
 const	makePath = (lang, file) => {
 	if  ( !lang )	{
@@ -127,6 +118,9 @@ const getAssets = (req, res) => {
 }
 
 initEnv();
+const homeRouter = require('./routes/home');
+const apiRouter = require('./routes/api');
+
 contentRouter.get('/assets/:path', getAssets);
 contentRouter.get('/:path', getContent);
 contentRouter.get('/', getContent);
