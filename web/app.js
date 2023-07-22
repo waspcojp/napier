@@ -19,6 +19,7 @@ global.env = require('../config/server');
 try {
 	global.env.service = require('../config/service');
 } catch(e) {
+	global.env.service = {};
 	console.log('service not found')
 }
 
