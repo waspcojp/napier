@@ -36,6 +36,11 @@ const   getProfile = (user, profile_name) => {
                 }
             })
         }
+    } else {
+        return  new Promise((done, fail) => {
+            console.log('user not found')
+            fail();
+        });
     }
 }
 

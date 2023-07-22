@@ -13,15 +13,27 @@ const cookieParser = require('cookie-parser');
 const contentRouter = express.Router();
 const mime = require('mime');
 const fs = require('fs');
+const {loadContent, readMap, applyRewrites} = require('../libs/web-server')
 
 global.env = require('../config/server');
 
-try {
-	global.env.service = require('../config/service');
-} catch(e) {
-	global.env.service = { paidService: false };
+let option = [];
+
+const initEnv = () => {
+	try {
+		global.env.service = require('../config/service');
+	} catch(e) {
+		global.env.service = { paidService: false };
+	}
+	//console.log(global.env);
+	option ||= {};
+	option['public'] = global.env.content_path;
+	let {rewrite, redirect} = readMap(global.env.content_path);
+	console.log({rewrite});
+	option['rewrites'] = rewrite;
+	option['redirects'] = redirect;
+	option['markdown'] = true;
 }
-//console.log(global.env);
 
 const homeRouter = require('./routes/home');
 const apiRouter = require('./routes/api');
@@ -30,14 +42,21 @@ const	makePath = (lang, file) => {
 	if  ( !lang )	{
 		lang = 'en-US';
 	}
-	let orig_path = path.join(global.env.content_path, lang, file);
-	let file_path;
+	let orig_path = path.join('/', lang, file);
+
 	if	( orig_path.match(/\/$/))	{
-		file_path = `${orig_path}index.html`;
-	} else {
+		orig_path = `${orig_path}index.html`;
+	}
+	console.log({orig_path});
+	let file_path = applyRewrites(orig_path, option.rewrites);
+	if	( !file_path )	{
 		file_path = orig_path;
 	}
-	return	(file_path);
+
+	return	({
+		file_path: path.join(global.env.content_path, file_path),
+		orig_path: orig_path
+	});
 }
 const	getContent = (req, res) => {
 	console.log(req.headers['accept-language']);
@@ -48,22 +67,20 @@ const	getContent = (req, res) => {
 	} catch (e) {
 		lang = 'en-US';
 	}
-	let file_path = makePath(lang, params_path);
+	let {file_path, orig_path} = makePath(lang, params_path);
 	console.log('file', lang, file_path);
 	try	{
 		let	content;
-		if	( file_path.match(/\.html$/) )	{
-			if	( fs.existsSync(file_path) )	{
-				content = sprightly.sprightly(file_path, {
-					env: global.env }, {
-						cache: false
-					});
-				res.set('Content-Type', 'text/html');
-				res.send(content);
-			} else {
-				console.log(e);
-				res.status(404).send('<h1>page not found</h1>');
-			}
+		console.log({file_path}, {orig_path});
+		content = loadContent(file_path, option, true, {
+			params: req.query,
+			pathname: orig_path,
+			lang: lang,
+			current: global.env.content_path
+		});
+		if	( content )	{
+			res.set('Content-Type', 'text/html');
+			res.send(content);
 		} else {
 			let mime_type = mime.getType(file_path);
 			if	( mime_type )	{
@@ -74,6 +91,9 @@ const	getContent = (req, res) => {
 					content = fs.readFileSync(file_path);
 				}
 				res.send(content);
+			} else {
+				console.log(e);
+				res.status(404).send('<h1>page not found</h1>');
 			}
 		}
 	} catch(e)	{
@@ -84,21 +104,23 @@ const	getContent = (req, res) => {
 const getAssets = (req, res) => {
 	let aseets_path = path.join(global.env.content_path, `assets/${req.params.path}`);
 	try {
-					let mime_type = mime.getType(aseets_path);
-					if      ( mime_type )   {
-									res.set('Content-Type', mime_type);
-									if      ( mime_type.match(/^text\/(?<type>.+)/) )       {
-													content = fs.readFileSync(aseets_path, 'utf-8');
-									} else {
-													content = fs.readFileSync(aseets_path);
-									}
-									res.send(content);
-					}
+		let mime_type = mime.getType(aseets_path);
+		if      ( mime_type )   {
+			res.set('Content-Type', mime_type);
+			if      ( mime_type.match(/^text\/(?<type>.+)/) )       {
+				content = fs.readFileSync(aseets_path, 'utf-8');
+			} else {
+				content = fs.readFileSync(aseets_path);
+			}
+			res.send(content);
+		}
 	} catch(e)      {
-					console.log(e);
-					res.status(404).send('<h1>page not found</h1>');
+		console.log(e);
+		res.status(404).send('<h1>page not found</h1>');
 	}
 }
+
+initEnv();
 contentRouter.get('/assets/:path', getAssets);
 contentRouter.get('/:path', getContent);
 contentRouter.get('/', getContent);

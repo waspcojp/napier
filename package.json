@@ -1,6 +1,6 @@
 {
   "name": "napier",
-  "version": "2.5.3",
+  "version": "2.5.4",
   "description": "simple web proxy service",
   "author": "Masami Ogoshi",
   "homepage": "https://github.com/waspcojp/napier",
@@ -51,6 +51,7 @@
     "node-uuid": "^1.4.8",
     "passport": "^0.6.0",
     "passport-local": "^1.0.0",
+    "path-to-regexp": "^6.2.1",
     "prismjs": "^1.25.0",
     "querystring": "^0.2.1",
     "redbird": "^0.10.0",

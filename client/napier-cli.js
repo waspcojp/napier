@@ -1,7 +1,7 @@
 const program = require('commander');   //  https://github.com/tj/commander.js
 const {clientOpen, Api} = require('./index');
 const fs = require('fs');
-const startWebServer = require('./web-server').start;
+const startWebServer = require('../libs/web-server').start;
 const _axios = require('axios');
 const { CookieJar } = require('tough-cookie');
 const { wrapper } = require('axios-cookiejar-support');
