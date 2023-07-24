@@ -1,6 +1,6 @@
 {
   "name": "napier",
-  "version": "2.5.4",
+  "version": "2.5.5",
   "description": "simple web proxy service",
   "author": "Masami Ogoshi",
   "homepage": "https://github.com/waspcojp/napier",

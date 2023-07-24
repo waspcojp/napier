@@ -1,6 +1,4 @@
 //const handler = require('serve-handler');	//	https://github.com/vercel/serve-handler
-require('svelte/register');
-
 const http = require('http');
 
 // Native
@@ -367,7 +365,6 @@ const renderDirectory = async (current, acceptsJSON, handlers, methods, config, 
 	const {directoryListing, trailingSlash, unlisted = [], renderSingle} = config;
 	const slashSuffix = typeof trailingSlash === 'boolean' ? (trailingSlash ? '/' : '') : '/';
 	const {relativePath, absolutePath} = paths;
-	const App = require('./directory.svelte').default;
 	const excluded = [
 		'.DS_Store',
 		'.git',
@@ -500,11 +497,12 @@ const renderDirectory = async (current, acceptsJSON, handlers, methods, config, 
 		directory,
 		paths: subPaths
 	};
-	//console.log('spec', spec);
-	let {html} = App.render({
-		procs: spec
-	});
-	const output = acceptsJSON ? JSON.stringify(spec) : html;
+	let output;
+	if	( acceptsJSON )	{
+		output = JSON.stringify(spec);
+	} else {
+		output = loadContent('./libs/directory.ejs', {}, spec);
+	}
 	return {directory: output};
 };
 
@@ -623,19 +621,13 @@ const mdInit = (_path) => {
 	return(_markdown);
 }
 
-const renderMarkdown = (absolutePath, toplevel) => {
-	const App = require('./content.svelte').default;
+const renderMarkdown = (absolutePath, config, toplevel, opts) => {
 	try {
 		let markdown = mdInit('');
 		let source = readFileSync(absolutePath, 'utf-8');
 		let inner_html = markdown.render(source);
 		if	( toplevel )	{
-			let {html} = App.render({
-				procs: {
-					html: inner_html
-				}
-			});
-			return	(html);
+			return	loadContent('./libs/markdown.html', config, toplevel, opts);
 		} else {
 			return	(inner_html);
 		}
@@ -647,27 +639,75 @@ const renderMarkdown = (absolutePath, toplevel) => {
 
 let current;	//	current content path
 
-const renderEJS = (absolutePath, config, toplevel, opts) => {
+const renderEJS = (absolutePath, config, opts) => {
 	//console.log('render EJS', absolutePath, opts);
 	try {
 		let source = readFileSync(absolutePath, 'utf-8');
 		let inner_html = ejs.render(source, { opts: opts }, {
 			filename: absolutePath
 		});
-		if	( toplevel )	{
-			let {html} = App.render({
-				procs: {
-					html: inner_html
-				}
-			});
-			return	(html);
-		} else {
-			return	(inner_html);
-		}
+		return	(inner_html);
 	} catch(err)	{
 		console.log('EJS render error', err);
 		return	('');
 	}	
+}
+const renderHTML = (thisPath,config,  toplevel, opts) => {
+	let file = readFileSync(thisPath, 'utf-8');
+	content = file.replaceAll(/\{\{(.*?)\}\}/sg, (_, macro) => {
+		let verb;
+		let reference;
+		let _opts;
+		//console.log('macro', macro);
+		if	( macro.match(/^#/) )	{
+			return	'';
+		}
+		if	( macro.match(/^.*>/) ) {
+			let words = parseMacro(macro);
+			//console.log({words});
+			verb = words[0];
+			reference = words[1];
+			if	( words[2] )	{
+				try {
+					_opts = Function(`return (${words[2]});`)();
+					//console.log('_opts', words[2], _opts);
+				} catch(e) {
+					console.log('eval', words[2]);
+					console.log(e);
+				}
+			}
+		} 
+		try {
+			//console.log('verb:', verb, ':', reference, ':', _opts);
+			if	( verb === '>' )	{
+				let name;
+				if	( reference )	{
+					name = reference.trim();
+				} else {
+					name = opts.pathname;
+				}
+				//console.log({name});
+				let componentPath;
+				if	( name.match(/^\//) )	{
+					componentPath = path.join(config['public'], path.normalize(name).slice(1));
+				} else {
+					componentPath = path.join(path.dirname(thisPath), path.normalize(name));
+				}
+				if ( existsSync(componentPath) ) {
+					return loadContent(componentPath, config, false, _opts);
+				} else {
+					console.log('component not found', componentPath);
+					return	'';
+				}
+			} else {
+				return _eval(`${macro}`, opts);
+			}
+		} catch(e) {
+			console.log(e);
+			return	'';
+		}
+	});
+	return	(content);
 }
 const _eval = (s, _opts) => {
 	let opts = _opts ? _opts : undefined;
@@ -701,73 +741,167 @@ const parseMacro = (s) => {
 	return	(token);
 }
 const loadContent = (thisPath, config, toplevel, opts) => {
-	//console.log('load:', thisPath);
+	console.log('load:', thisPath);
 	//console.log('opts:', opts);
 	let content;
 	if	( ( config ) && ( config.markdown ) && ( thisPath.match(/\.md/g) ) )	{
-		content = renderMarkdown(thisPath, toplevel, opts);
+		content = renderMarkdown(thisPath, config, toplevel, opts);
 	} else
 	if	( thisPath.match(/\.ejs/g) )	{
-		content = renderEJS(thisPath, config, toplevel, opts);
+		content = renderEJS(thisPath, config, opts);
 	} else
 	if	( thisPath.match(/\.html/g) )	{
-		let file = readFileSync(thisPath, 'utf-8');
-		content = file.replaceAll(/\{\{(.*?)\}\}/sg, (_, macro) => {
-			let verb;
-			let reference;
-			let _opts;
-			//console.log('macro', macro);
-			if	( macro.match(/^#/) )	{
-				return	'';
-			}
-			if	( macro.match(/^.*>/) ) {
-				let words = parseMacro(macro);
-				//console.log({words});
-				verb = words[0];
-				reference = words[1];
-				if	( words[2] )	{
-					try {
-						_opts = Function(`return (${words[2]});`)();
-						//console.log('_opts', words[2], _opts);
-					} catch(e) {
-						console.log('eval', words[2]);
-						console.log(e);
-					}
-				}
-			} 
-			try {
-				//console.log('verb:', verb, ':', reference, ':', _opts);
-				if	( verb === '>' )	{
-					let name;
-					if	( reference )	{
-						name = reference.trim();
-					} else {
-						name = opts.pathname;
-					}
-					//console.log({name});
-					let componentPath;
-					if	( name.match(/^\//) )	{
-						componentPath = path.join(config['public'], path.normalize(name).slice(1));
-					} else {
-						componentPath = path.join(path.dirname(thisPath), path.normalize(name));
-					}
-					if ( existsSync(componentPath) ) {
-						return loadContent(componentPath, config, false, _opts);
-					} else {
-						console.log('component not found', componentPath);
-						return	'';
-					}
-				} else {
-					return _eval(`${macro}`, opts);
-				}
-			} catch(e) {
-				console.log(e);
-				return	'';
-			}
-		});
+		content = renderHTML(thisPath, config, toplevel, opts);
 		//console.log(content);
 	}
 	return	(content);
+}
+
+const getDirectory = async (request, response, handlers, config, absolutePath, relativePath, stats, acceptsJSON, methods) => {
+	let directory = null;
+	let singleFile = null;
+
+	try {
+		const related = await renderDirectory(current, acceptsJSON, handlers, methods, config, {
+			relativePath,
+			absolutePath
+		});
+
+		if (related.singleFile) {
+			({stats, absolutePath, singleFile} = related);
+		} else {
+			({directory} = related);
+		}
+	} catch (err) {
+		if (err.code !== 'ENOENT') {
+			return internalError(absolutePath, response, acceptsJSON, current, handlers, config, err);
+		}
+	}
+
+	if (directory) {
+		const contentType = acceptsJSON ? 'application/json; charset=utf-8' : 'text/html; charset=utf-8';
+
+		response.statusCode = 200;
+		response.setHeader('Content-Type', contentType);
+		response.end(directory);
+
+		return true;
+	}
+
+	if (!singleFile) {
+		// The directory listing is disabled, so we want to
+		// render a 404 error.
+		stats = null;
+	}
+
+}
+
+const getTextContent = (request, response, config, absolutePath, relativePath) => {
+	let params = pathParse(request.url).params;
+	let content = loadContent(absolutePath, config, true, {
+		params: params,
+		pathname: relativePath,
+		current: current
+	});
+	if	( content )	{
+		response.statusCode = 200;
+		response.setHeader('Content-Type', 'text/html; charset=utf-8');
+		response.end(content);
+	
+		return true;
+	} else {
+		return false;
+	}
+}
+
+const getNonTextContent = async (request, response, config, absolutePath, relativePath, stats, handlers) => {
+	const headers = await getHeaders(handlers, config, current, absolutePath, stats);
+
+	const streamOpts = {};
+
+	// TODO ? if-range
+	if (request.headers.range && stats.size) {
+		const range = parseRange(stats.size, request.headers.range);
+
+		if (typeof range === 'object' && range.type === 'bytes') {
+			const {start, end} = range[0];
+
+			streamOpts.start = start;
+			streamOpts.end = end;
+
+			response.statusCode = 206;
+		} else {
+			response.statusCode = 416;
+			response.setHeader('Content-Range', `bytes */${stats.size}`);
+		}
+	}
+
+	// TODO ? multiple ranges
+
+	let stream = null;
+
+	try {
+		//console.log('read:', absolutePath);
+		stream = await handlers.createReadStream(absolutePath, streamOpts);
+	} catch (err) {
+		return internalError(absolutePath, response, acceptsJSON, current, handlers, config, err);
+	}
+
+	// eslint-disable-next-line no-undefined
+	if (streamOpts.start !== undefined && streamOpts.end !== undefined) {
+		headers['Content-Range'] = `bytes ${streamOpts.start}-${streamOpts.end}/${stats.size}`;
+		headers['Content-Length'] = streamOpts.end - streamOpts.start + 1;
+	}
+
+	// We need to check for `headers.ETag` being truthy first, otherwise it will
+	// match `undefined` being equal to `undefined`, which is true.
+	//
+	// Checking for `undefined` and `null` is also important, because `Range` can be `0`.
+	//
+	// eslint-disable-next-line no-eq-null
+	if (request.headers.range == null && headers.ETag && headers.ETag === request.headers['if-none-match']) {
+		response.statusCode = 304;
+		response.end();
+
+		return;
+	}
+
+	response.writeHead(response.statusCode || 200, headers);
+	stream.pipe(response);
+
+}
+const execGET = async (request, response, config, absolutePath, relativePath, stats, acceptsJSON, handlers, methods) => {
+	if (stats && stats.isDirectory()) {		//	directory
+		if	( await getDirectory(request, response, handlers, config,
+							absolutePath, relativePath, stats,
+							acceptsJSON, methods) )	return;
+	}
+
+	const isSymLink = stats && stats.isSymbolicLink();
+
+	if (!stats || (!config.symlinks && isSymLink)) {
+		// allow for custom 404 handling
+		return handlers.sendError(absolutePath, response, acceptsJSON, current, handlers, config, {
+			statusCode: 404,
+			code: 'not_found',
+			message: 'The requested path could not be found'
+		});
+	}
+	if (isSymLink) {
+		absolutePath = await handlers.realpath(absolutePath);
+		stats = await handlers.lstat(absolutePath);
+	}
+
+
+	//
+	//	read contents here!!
+	//
+	if	( getTextContent(request, response, config, absolutePath, relativePath) ) {
+		return;
+	}
+	await getNonTextContent(request, response, config, absolutePath, relativePath, stats,
+		handlers);
+
 }
 
 const handler = async (request, response, config = {}, methods = {}) => {
@@ -844,8 +978,6 @@ const handler = async (request, response, config = {}, methods = {}) => {
 		}
 	}
 	const rewrittenPath = applyRewrites(relativePath, config.rewrites);
-	//console.log({rewrittenPath});
-	//console.log({stats});
 //	if (!stats && (cleanUrl || rewrittenPath)) {	元々のロジックでは、素のHTMLがない時だけrewriteが発動していた。テンプレート適用機能{{>}}のために潰す
 	if (cleanUrl || rewrittenPath) {
 		try {
@@ -869,136 +1001,13 @@ const handler = async (request, response, config = {}, methods = {}) => {
 			}
 		}
 	}
-
-	if (stats && stats.isDirectory()) {		//	directory
-		let directory = null;
-		let singleFile = null;
-
-		try {
-			const related = await renderDirectory(current, acceptsJSON, handlers, methods, config, {
-				relativePath,
-				absolutePath
-			});
-
-			if (related.singleFile) {
-				({stats, absolutePath, singleFile} = related);
-			} else {
-				({directory} = related);
-			}
-		} catch (err) {
-			if (err.code !== 'ENOENT') {
-				return internalError(absolutePath, response, acceptsJSON, current, handlers, config, err);
-			}
-		}
-
-		if (directory) {
-			const contentType = acceptsJSON ? 'application/json; charset=utf-8' : 'text/html; charset=utf-8';
-
-			response.statusCode = 200;
-			response.setHeader('Content-Type', contentType);
-			response.end(directory);
-
-			return;
-		}
-
-		if (!singleFile) {
-			// The directory listing is disabled, so we want to
-			// render a 404 error.
-			stats = null;
-		}
+	switch	( request.method)	{
+	  case	'GET':
+		await execGET(request, response, config, absolutePath, relativePath, stats, acceptsJSON, handlers, methods);
+		break;
+	  default:
+		break;
 	}
-
-	const isSymLink = stats && stats.isSymbolicLink();
-
-	// There are two scenarios in which we want to reply with
-	// a 404 error: Either the path does not exist, or it is a
-	// symlink while the `symlinks` option is disabled (which it is by default).
-	if (!stats || (!config.symlinks && isSymLink)) {
-		// allow for custom 404 handling
-		return handlers.sendError(absolutePath, response, acceptsJSON, current, handlers, config, {
-			statusCode: 404,
-			code: 'not_found',
-			message: 'The requested path could not be found'
-		});
-	}
-
-	// If we figured out that the target is a symlink, we need to
-	// resolve the symlink and run a new `stat` call just for the
-	// target of that symlink.
-	if (isSymLink) {
-		absolutePath = await handlers.realpath(absolutePath);
-		stats = await handlers.lstat(absolutePath);
-	}
-
-	//
-	//	read contents here!!
-	//
-	const headers = await getHeaders(handlers, config, current, absolutePath, stats);
-	let params = pathParse(request.url).params;
-	let content = loadContent(absolutePath, config, true, {
-		params: params,
-		pathname: relativePath,
-		current: current
-	});
-	if	( content )	{
-		response.statusCode = 200;
-		response.setHeader('Content-Type', 'text/html; charset=utf-8');
-		response.end(content);
-		stats = null;
-	
-		return;
-	}
-	const streamOpts = {};
-
-	// TODO ? if-range
-	if (request.headers.range && stats.size) {
-		const range = parseRange(stats.size, request.headers.range);
-
-		if (typeof range === 'object' && range.type === 'bytes') {
-			const {start, end} = range[0];
-
-			streamOpts.start = start;
-			streamOpts.end = end;
-
-			response.statusCode = 206;
-		} else {
-			response.statusCode = 416;
-			response.setHeader('Content-Range', `bytes */${stats.size}`);
-		}
-	}
-
-	// TODO ? multiple ranges
-
-	let stream = null;
-
-	try {
-		//console.log('read:', absolutePath);
-		stream = await handlers.createReadStream(absolutePath, streamOpts);
-	} catch (err) {
-		return internalError(absolutePath, response, acceptsJSON, current, handlers, config, err);
-	}
-
-	// eslint-disable-next-line no-undefined
-	if (streamOpts.start !== undefined && streamOpts.end !== undefined) {
-		headers['Content-Range'] = `bytes ${streamOpts.start}-${streamOpts.end}/${stats.size}`;
-		headers['Content-Length'] = streamOpts.end - streamOpts.start + 1;
-	}
-
-	// We need to check for `headers.ETag` being truthy first, otherwise it will
-	// match `undefined` being equal to `undefined`, which is true.
-	//
-	// Checking for `undefined` and `null` is also important, because `Range` can be `0`.
-	//
-	// eslint-disable-next-line no-eq-null
-	if (request.headers.range == null && headers.ETag && headers.ETag === request.headers['if-none-match']) {
-		response.statusCode = 304;
-		response.end();
-
-		return;
-	}
-
-	response.writeHead(response.statusCode || 200, headers);
-	stream.pipe(response);
 };
 
 let server = null;

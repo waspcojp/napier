@@ -73,7 +73,7 @@ const   tunnel = (opts, ws_url, profile) => {
                             name: profile
                         },
                         (body) => {
-                            if  ( body.status != 'OK')  {
+                            if  ( !body || body.status != 'OK')  {
                                 console.log(`can not start ${profile}`);
                                 console.log('error:', body.error);
                                 ws.close();
