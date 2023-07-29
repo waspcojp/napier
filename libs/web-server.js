@@ -5,7 +5,8 @@ const http = require('http');
 const {promisify} = require('util');
 const path = require('path');
 const {createHash} = require('crypto');
-const {realpath, lstat, createReadStream, readdir, readFileSync, existsSync} = require('fs');
+const {realpath, lstat, createReadStream, readdir, readFileSync, existsSync, writeFileSync} = require('fs');
+const bcrypt = require('bcrypt');
 
 const ORIGINAL = '../node_modules/serve-handler/src';
 
@@ -19,6 +20,9 @@ const bytes = require('bytes');
 const contentDisposition = require('content-disposition');
 const isPathInside = require('path-is-inside');
 const parseRange = require('range-parser');
+const cookie = require('cookie');
+const uuid = require('node-uuid');
+
 
 // Other
 const errorTemplate = require(`${ORIGINAL}/error`);
@@ -46,6 +50,7 @@ require("prismjs/components/prism-shell-session");
 const etags = new Map();
 
 const pathParse = (url_path) => {
+	//console.log({url_path});
 	let el = url_path.split('?');
 	let file = el[0];
 	let params = {};
@@ -501,7 +506,7 @@ const renderDirectory = async (current, acceptsJSON, handlers, methods, config, 
 	if	( acceptsJSON )	{
 		output = JSON.stringify(spec);
 	} else {
-		output = loadContent('./libs/directory.ejs', {}, spec);
+		output = loadContent('./libs/directory.ejs', {}, false, spec);
 	}
 	return {directory: output};
 };
@@ -648,65 +653,70 @@ const renderEJS = (absolutePath, config, opts) => {
 		});
 		return	(inner_html);
 	} catch(err)	{
-		console.log('EJS render error', err);
+		//console.log('EJS render error', err);
 		return	('');
 	}	
 }
 const renderHTML = (thisPath,config,  toplevel, opts) => {
-	let file = readFileSync(thisPath, 'utf-8');
-	content = file.replaceAll(/\{\{(.*?)\}\}/sg, (_, macro) => {
-		let verb;
-		let reference;
-		let _opts;
-		//console.log('macro', macro);
-		if	( macro.match(/^#/) )	{
-			return	'';
-		}
-		if	( macro.match(/^.*>/) ) {
-			let words = parseMacro(macro);
-			//console.log({words});
-			verb = words[0];
-			reference = words[1];
-			if	( words[2] )	{
-				try {
-					_opts = Function(`return (${words[2]});`)();
-					//console.log('_opts', words[2], _opts);
-				} catch(e) {
-					console.log('eval', words[2]);
-					console.log(e);
-				}
+	let content;
+	try {
+		let file = readFileSync(thisPath, 'utf-8');
+		content = file.replaceAll(/\{\{(.*?)\}\}/sg, (_, macro) => {
+			let verb;
+			let reference;
+			let _opts;
+			//console.log('macro', macro);
+			if	( macro.match(/^#/) )	{
+				return	'';
 			}
-		} 
-		try {
-			//console.log('verb:', verb, ':', reference, ':', _opts);
-			if	( verb === '>' )	{
-				let name;
-				if	( reference )	{
-					name = reference.trim();
-				} else {
-					name = opts.pathname;
+			if	( macro.match(/^.*>/) ) {
+				let words = parseMacro(macro);
+				//console.log({words});
+				verb = words[0];
+				reference = words[1];
+				if	( words[2] )	{
+					try {
+						_opts = Function(`return (${words[2]});`)();
+						//console.log('_opts', words[2], _opts);
+					} catch(e) {
+						console.log('eval', words[2]);
+						console.log(e);
+					}
 				}
-				//console.log({name});
-				let componentPath;
-				if	( name.match(/^\//) )	{
-					componentPath = path.join(config['public'], path.normalize(name).slice(1));
+			} 
+			try {
+				//console.log('verb:', verb, ':', reference, ':', _opts);
+				if	( verb === '>' )	{
+					let name;
+					if	( reference )	{
+						name = reference.trim();
+					} else {
+						name = opts.pathname;
+					}
+					//console.log({name});
+					let componentPath;
+					if	( name.match(/^\//) )	{
+						componentPath = path.join(config['public'], path.normalize(name).	slice(1));
+					} else {
+						componentPath = path.join(path.dirname(thisPath), path.normalize(name));
+					}
+					if ( existsSync(componentPath) ) {
+						return loadContent(componentPath, config, false, _opts);
+					} else {
+						console.log('component not found', componentPath);
+						return	'';
+					}
 				} else {
-					componentPath = path.join(path.dirname(thisPath), path.normalize(name));
+					return _eval(`${macro}`, opts);
 				}
-				if ( existsSync(componentPath) ) {
-					return loadContent(componentPath, config, false, _opts);
-				} else {
-					console.log('component not found', componentPath);
-					return	'';
-				}
-			} else {
-				return _eval(`${macro}`, opts);
+			} catch(e) {
+				console.log(e);
+				return	'';
 			}
-		} catch(e) {
-			console.log(e);
-			return	'';
-		}
-	});
+		});
+	} catch (e) {
+		;
+	}
 	return	(content);
 }
 const _eval = (s, _opts) => {
@@ -741,7 +751,7 @@ const parseMacro = (s) => {
 	return	(token);
 }
 const loadContent = (thisPath, config, toplevel, opts) => {
-	console.log('load:', thisPath);
+	//console.log('load:', thisPath);
 	//console.log('opts:', opts);
 	let content;
 	if	( ( config ) && ( config.markdown ) && ( thisPath.match(/\.md/g) ) )	{
@@ -870,7 +880,15 @@ const getNonTextContent = async (request, response, config, absolutePath, relati
 	stream.pipe(response);
 
 }
-const execGET = async (request, response, config, absolutePath, relativePath, stats, acceptsJSON, handlers, methods) => {
+const execGET = async (request, response, session, config, absolutePath, relativePath, stats, acceptsJSON, handlers, methods) => {
+	for ( let ignore of config.ignores )	{
+		if	( absolutePath.match(ignore) )
+			return handlers.sendError(absolutePath, response, acceptsJSON, current, handlers, config, {
+				statusCode: 403,
+				code: 'forbidden',
+				message: `You don't have permission to access ${relativePath} on this server`
+			});
+	}
 	if (stats && stats.isDirectory()) {		//	directory
 		if	( await getDirectory(request, response, handlers, config,
 							absolutePath, relativePath, stats,
@@ -904,21 +922,161 @@ const execGET = async (request, response, config, absolutePath, relativePath, st
 
 }
 
+const COOKIE_NAME = 'napier-client';
+
+const checkSession = (cookie_header) => {
+	if	( cookie_header )	{
+		let cookies = cookie.parse(cookie_header);
+		//console.log('cookie', cookies);
+		let id = cookies[COOKIE_NAME];
+		if	( id )	{
+			try {
+				let file = readFileSync(path.join(current, `/session_${id}.json`), 'utf-8')
+				let ses_data = JSON.parse(file);
+				return	(ses_data);
+			} catch(e)	{
+				return	(null);
+			}
+		} else {
+			return	(null);
+		}
+	}
+}
+const setSession = (response, maxAge, user_name, opts) => {
+	let cookie_str;
+	let id = uuid.v4();
+	//console.log('setSession', opts);
+	cookie_str = cookie.serialize(COOKIE_NAME,id, {
+		maxAge: maxAge
+	});
+	let ses_data = {
+		user_name: user_name,
+		opts,
+		lastUpdate: (new Date()).toString()
+	};
+	writeFileSync(path.join(current, `/session_${id}.json`),
+			JSON.stringify(ses_data, ' ', 2));
+	response.setHeader('Set-Cookie', cookie_str);
+}
+
+const redirectURL = (response, location, code) => {
+	//console.log('redirectURL', location, code);
+	code = code || 301;
+	response.writeHead(code, {
+		Location: encodeURI(location),
+	})
+	response.end();
+	return	true;
+}
+
+const readPostData = (req) => {
+	return new Promise((done, fail) => {
+		let posted = '';
+		req.on('data', (chunk) => {
+			posted += chunk;
+		}).on('end', () => {
+			let params = {};
+			if	(( !req.headers['content-type'] ) ||
+				 ( req.headers['content-type'] === 'application/x-www-form-urlencoded' )) {
+				let entries = posted.split('&');
+				for ( let ent of entries) {
+					let arg = ent.split('=');
+					params[arg[0]] = arg[1];
+				}
+			}
+			done(params);
+		})
+	});
+}
+
+const authUser = (req, user, password) => {
+	let file;
+	//console.log({user});
+	return new Promise((done, fail) => {
+		try {
+			file = readFileSync(path.join(current, "/password.json"), 'utf-8');
+		} catch (e) {
+			file = undefined;
+		}
+		if	( !file )	{
+			done(null);
+		} else {
+			let users = JSON.parse(file);
+			let ent = users[user];
+			//console.log(users);
+			//console.log({ent});
+			if	( !ent )	{
+				done(null);
+			} else {
+				if	(( password ) &&
+					 ( bcrypt.compareSync(password, ent.hash_password) ))	{
+					//console.log('auth ok')
+					done(ent);
+				} else {
+					//console.log('auth fail');
+					done(null);
+				}
+			}
+		}
+	});
+}
+
+const needLogin = async (request, response, config) => {
+	if	( request.method === 'GET' )	{
+		if	( url.parse(request.url).pathname !== '/login.html' )	{
+			//console.log('redirect to login', request.url);
+			redirectURL(response, `/login.html?redirect=${request.url}`, 301);
+		} else {
+			//console.log('redirect', request.url);
+			let {params} = pathParse(request.url);
+			let content = loadContent(path.join(current, '/login.ejs'), config, true, {
+				params: `redirect=${params.redirect}`
+			});
+			if	( !content)	{
+				content = loadContent('./libs/login.ejs', config, true, {
+					params: `redirect=${params.redirect}`
+				});
+			}
+			response.statusCode = 200;
+			response.setHeader('Content-Type', 'text/html; charset=utf-8');
+			response.end(content);
+		}
+	} else {
+		let data = await readPostData(request);
+		//console.log({data});
+		let user = await authUser(request, data.user_name, data.password);
+		let {params} = pathParse(request.url);
+		//console.log('login', user, data, params);
+		if	( user )	{
+			setSession(response, 24 * 3600 * 52, data.user_name);
+		}
+		redirectURL(response, params.redirect, 301);
+	}
+}
+
 const handler = async (request, response, config = {}, methods = {}) => {
 	const cwd = process.cwd();
 	const handlers = getHandlers(methods);
-
-	//console.log(config);
-	//console.log('url', request.url);
-
+	current = config.public ? path.resolve(cwd, config.public) : cwd;
+	let session = checkSession(request.headers.cookie);
 	let relativePath = null;
 	let acceptsJSON = null;
-	current = config.public ? path.resolve(cwd, config.public) : cwd;
 
 	if (request.headers.accept) {
 		acceptsJSON = request.headers.accept.includes('application/json');
 	}
 
+	//console.log(request.method, request.url);
+	//console.log('headers', request.headers);
+
+	console.log(config);
+	//console.log({session});
+	if	( config.authenticate )	{
+		if ( !session || !session.user_name )	{
+			await needLogin(request, response, config);
+			return;
+		}
+	}
 	try {
 		relativePath = decodeURIComponent(url.parse(request.url).pathname);
 	} catch (err) {
@@ -1001,9 +1159,9 @@ const handler = async (request, response, config = {}, methods = {}) => {
 			}
 		}
 	}
-	switch	( request.method)	{
+	switch	( request.method )	{
 	  case	'GET':
-		await execGET(request, response, config, absolutePath, relativePath, stats, acceptsJSON, handlers, methods);
+		await execGET(request, response, session, config, absolutePath, relativePath, stats, acceptsJSON, handlers, methods);
 		break;
 	  default:
 		break;
@@ -1016,7 +1174,11 @@ const readMap = (root) => {
 	const filename = path.join(root, 'map.rules');
 	let rewrite = [];
 	let redirect = [];
-
+	let ignore = [
+		/password\.json/i,
+		/session_.*\.json/i,
+		/map\.rules/i
+	];
 	if	( existsSync(filename) )	{
 		let file = readFileSync(filename, 'utf-8');
 		let items;
@@ -1034,30 +1196,36 @@ const readMap = (root) => {
 						source: items[1],
 						destination: items[2]
 					});
+				} else
+				if	( items[0].match(/ignore/i) )	{
+					ignore.psh(new RegExp(item[1]));
 				}
 			}
 		}
 	}
 	return	({
 		rewrite: rewrite,
-		redirect: redirect
+		redirect: redirect,
+		ignores: ignore
 	});
 }
+
+let thisConfig;
 
 const start = (port, root, option) => {
 	option ||= {};
 	option['public'] = root;
-	let {rewrite, redirect} = readMap(root);
+	let {rewrite, redirect, ignores} = readMap(root);
 	option['rewrites'] = rewrite;
 	option['redirects'] = redirect;
+	option['ignores'] = ignores;
+	//option['authenticate'] = true;
 	//console.log({option});
 	thisConfig = option;
 
 	if	( !server )	{
 		server = http.createServer((req, res) => {
-			//console.log('req', req.method, req.url, )
-			return	handler(req, res, option, {
-			});
+			return	handler(req, res, thisConfig, {})
 		});
 
 		server.listen(port, () => {

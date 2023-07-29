@@ -24,6 +24,7 @@ const   parseOptions = () => {
     program.option  ('--document-root <path>',     'web server document root');
     program.option  ('--index',                    'list index');
     program.option  ('--markdown',                 'markdown SSR');
+    program.option  ('--authenticate',             'password authentication');
 
     program.argument('[profileName]',              'profile name', 'default');
     program.parse();
@@ -36,7 +37,7 @@ const   parseOptions = () => {
         try {
             let config = JSON.parse(fs.readFileSync(opts.config, 'utf-8'));
             Object.keys(opts).forEach((key) => {
-                    console.log('key', key, opts[key]);
+                    //console.log('key', key, opts[key]);
                     config[key] = opts[key];
             });
             if  ( config['profile'] )   {
@@ -49,7 +50,8 @@ const   parseOptions = () => {
     opts['reConnect'] ||= false;
     opts['webServer'] ||= false;
     opts['index'] ||= false;
-    //console.log({opts}, args);
+    opts['authenticate'] ||= false;
+    console.log({opts}, args);
 
     return  { opts: opts, profile: args[0]};
 }
@@ -111,13 +113,13 @@ const makeConnection = (opts, profile) => {
                     console.log('ready fail');
                 }
             }).catch((e) => {
-                console.log('proxy network error');
+                console.log('proxy network error',e);
             })
         } else {
             console.log('login fail', res.data.message);
         }
     }).catch ((e) => {
-        console.log('login connection refused');
+        console.log('login connection refused', e);
     })
 }
 
@@ -131,6 +133,7 @@ const   main = () => {
         } else {
             config['directoryListing'] = opts.index;
             config['markdown'] = opts.markdown;
+            config['authenticate'] = opts.authenticate;
         }
         startWebServer(opts.localPort, opts.documentRoot, config);
     }
@@ -144,7 +147,7 @@ const   main = () => {
                         console.log('error', e);
                     }
                 }
-            }, 1000);
+            }, 1000 * 5);
         } else {
             makeConnection(opts, profile);
         }

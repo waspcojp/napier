@@ -64,6 +64,7 @@ module.exports = class {
         }
         this.send = 0;
         this.recv = 0;
+        this.channels[channel] = undefined;
     }
     sendData(channel, buff) {
         let size = buff.length;
@@ -132,7 +133,6 @@ module.exports = class {
             socket.on('close', (status) => {
                 //console.log('close', channel);
                 this.closeChannel(channel);
-                this.channels[channel] = undefined;
             })
         });
         this.localServer = local.listen(this.localPort);

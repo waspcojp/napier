@@ -7,7 +7,7 @@ const {exit} = require('process');
 
 let channels = [0]
 let session_id;
-const TIMEOUT = 2000;
+const TIMEOUT = 5000;
 
 const Api = (ws, func, arg, callback) => {
     let sequence = ws.sequence;

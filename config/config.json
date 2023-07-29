@@ -13,5 +13,6 @@
     "database": "napier_production",
     "storage": "./db/napier_production.sqlite3",
     "dialect": "sqlite"
-  }
+  },
+  "logging": false
 }
