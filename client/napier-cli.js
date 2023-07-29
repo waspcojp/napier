@@ -51,7 +51,7 @@ const   parseOptions = () => {
     opts['webServer'] ||= false;
     opts['index'] ||= false;
     opts['authenticate'] ||= false;
-    console.log({opts}, args);
+    //console.log({opts}, args);
 
     return  { opts: opts, profile: args[0]};
 }
