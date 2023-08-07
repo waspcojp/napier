@@ -1,11 +1,10 @@
 {
   "name": "napier",
-  "version": "2.5.5",
+  "version": "2.67.5",
   "description": "simple web proxy service",
   "author": "Masami Ogoshi",
   "homepage": "https://github.com/waspcojp/napier",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
     "build-production": "webpack -c --mode production",
     "webbuild": "webpack -c webpack.config.js --mode development",
     "watch": "NODE_OPTIONS=--openssl-legacy-provider webpack -c webpack.config.js --watch",

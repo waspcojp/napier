@@ -7,6 +7,7 @@ const path = require('path');
 const {createHash} = require('crypto');
 const {realpath, lstat, createReadStream, readdir, readFileSync, existsSync, writeFileSync} = require('fs');
 const bcrypt = require('bcrypt');
+const SALT_ROUNDS = 10;
 
 const ORIGINAL = '../node_modules/serve-handler/src';
 
@@ -376,6 +377,7 @@ const renderDirectory = async (current, acceptsJSON, handlers, methods, config, 
 		...unlisted
 	];
 
+	//console.log('renderDirectory');
 	if (!applicable(relativePath, directoryListing) && !renderSingle) {
 		return {};
 	}
@@ -506,7 +508,7 @@ const renderDirectory = async (current, acceptsJSON, handlers, methods, config, 
 	if	( acceptsJSON )	{
 		output = JSON.stringify(spec);
 	} else {
-		output = loadContent('./libs/directory.ejs', {}, false, spec);
+		output = await loadContent('./libs/directory.ejs', {}, false, spec);
 	}
 	return {directory: output};
 };
@@ -648,20 +650,75 @@ const renderEJS = (absolutePath, config, opts) => {
 	//console.log('render EJS', absolutePath, opts);
 	try {
 		let source = readFileSync(absolutePath, 'utf-8');
-		let inner_html = ejs.render(source, { opts: opts }, {
+		let html = ejs.render(source, { opts: opts }, {
 			filename: absolutePath
 		});
-		return	(inner_html);
+		return	(html);
 	} catch(err)	{
-		//console.log('EJS render error', err);
+		console.log('EJS render error', err);
 		return	('');
 	}	
 }
-const renderHTML = (thisPath,config,  toplevel, opts) => {
+const renderJS = async (absolutePath, config, opts) => {
+	//console.log('render JS', absolutePath, opts);
+	try {
+		let renderer = require(absolutePath);
+		let ret;
+		if	( !opts.method || opts.method === 'GET' )	{
+			//console.log('GET');
+			if	( renderer.get )	{
+				ret = await renderer.get(config, opts);
+			} else {
+				ret = await renderer(config, opts);
+			}
+			//console.log({ret});
+		} else
+		if	( opts.method === 'POST' )	{
+			ret = renderer.post(config, opts);
+		}
+		//console.log('ret', typeof ret, ret);
+		if	( !ret )	{
+			return	('');
+		} else
+		if	( typeof ret === 'string' )	{
+			return	(ret);
+		} else {
+			let templatePath;
+			if	( ret.filename )	{
+				templatePath = path.join(current, ret.filename);
+			}
+			//console.log({templatePath});
+			//console.log('data', ret.data);
+			let content = loadContent(templatePath, config, true, ret.data);
+			return	(content);
+		}
+	} catch(err)	{
+		console.log('JS render error', err);
+		return	('');
+	}	
+}
+
+const renderHTML = (thisPath,config, opts) => {
 	let content;
 	try {
 		let file = readFileSync(thisPath, 'utf-8');
-		content = file.replaceAll(/\{\{(.*?)\}\}/sg, (_, macro) => {
+
+		let content_pre = file.replaceAll(/\{\{(\w.*?)\}\}/sg, (_, macro) => {
+			//console.log({macro});
+			if	( macro.match(/^#/) )	{
+				return	'';
+			}
+			if	( macro.match(/^.*>/) ) {
+				return _;
+			} else {
+				let ret = __eval(`${macro}`, opts);
+				ret = typeof ret === 'string' ? ret : JSON.stringify(ret) + ' ';
+				return	(ret);
+			}
+		});
+		//console.log({content_pre});
+
+		content = content_pre.replaceAll(/\{\{(.*?)\}\}/sg, (_, macro) => {
 			let verb;
 			let reference;
 			let _opts;
@@ -676,10 +733,10 @@ const renderHTML = (thisPath,config,  toplevel, opts) => {
 				reference = words[1];
 				if	( words[2] )	{
 					try {
-						_opts = Function(`return (${words[2]});`)();
-						//console.log('_opts', words[2], _opts);
+						_opts = __eval(words[2], opts);
+						//console.log('_opts', words[2], opts);
 					} catch(e) {
-						console.log('eval', words[2]);
+						//console.log('eval', words[2]);
 						console.log(e);
 					}
 				}
@@ -701,7 +758,8 @@ const renderHTML = (thisPath,config,  toplevel, opts) => {
 						componentPath = path.join(path.dirname(thisPath), path.normalize(name));
 					}
 					if ( existsSync(componentPath) ) {
-						return loadContent(componentPath, config, false, _opts);
+						let ret = loadContent(componentPath, config, false, _opts);
+						return	(ret);
 					} else {
 						console.log('component not found', componentPath);
 						return	'';
@@ -715,16 +773,30 @@ const renderHTML = (thisPath,config,  toplevel, opts) => {
 			}
 		});
 	} catch (e) {
-		;
+		console.log('renderHTML', e);
 	}
 	return	(content);
+}
+const __eval = (s, _opts) => {
+	opts = _opts ? _opts : undefined;
+	//console.log('_eval', s, ':', opts);
+	try {
+		let ret = Function(`return (${s});`)();;
+		//console.log('__eval ret', ret);
+		return	ret;
+	} catch (e) {
+		console.log('__eval>', s);
+		console.log(e);
+		return	'';
+	}
 }
 const _eval = (s, _opts) => {
 	let opts = _opts ? _opts : undefined;
 	//console.log('_eval', s, ':', opts);
 	try {
-		let ret = eval(s).toString();
-		//console.log('ret', ret);
+		let ret = eval(s);
+		ret = ret ? ret.toString() : '';
+		console.log('_eval ret', ret);
 		return	ret;
 	} catch (e) {
 		console.log('eval>', s);
@@ -760,9 +832,11 @@ const loadContent = (thisPath, config, toplevel, opts) => {
 	if	( thisPath.match(/\.ejs/g) )	{
 		content = renderEJS(thisPath, config, opts);
 	} else
+	if	( ( config ) && ( config.javascript ) && ( thisPath.match(/run\.js/g) ) )	{
+		content = renderJS(thisPath, config, opts);
+	} else
 	if	( thisPath.match(/\.html/g) )	{
-		content = renderHTML(thisPath, config, toplevel, opts);
-		//console.log(content);
+		content = renderHTML(thisPath, config, opts);
 	}
 	return	(content);
 }
@@ -770,7 +844,7 @@ const loadContent = (thisPath, config, toplevel, opts) => {
 const getDirectory = async (request, response, handlers, config, absolutePath, relativePath, stats, acceptsJSON, methods) => {
 	let directory = null;
 	let singleFile = null;
-
+	//console.log('getDirectory');
 	try {
 		const related = await renderDirectory(current, acceptsJSON, handlers, methods, config, {
 			relativePath,
@@ -802,17 +876,20 @@ const getDirectory = async (request, response, handlers, config, absolutePath, r
 		// The directory listing is disabled, so we want to
 		// render a 404 error.
 		stats = null;
+		return	false;
 	}
 
 }
 
-const getTextContent = (request, response, config, absolutePath, relativePath) => {
+const getTextContent = async (request, response, config, absolutePath, relativePath) => {
 	let params = pathParse(request.url).params;
-	let content = loadContent(absolutePath, config, true, {
+	let content = await loadContent(absolutePath, config, true, {
+		method: request.method,
 		params: params,
 		pathname: relativePath,
 		current: current
 	});
+	//console.log('content', content);
 	if	( content )	{
 		response.statusCode = 200;
 		response.setHeader('Content-Type', 'text/html; charset=utf-8');
@@ -889,10 +966,15 @@ const execGET = async (request, response, session, config, absolutePath, relativ
 				message: `You don't have permission to access ${relativePath} on this server`
 			});
 	}
+	//console.log({stats});
 	if (stats && stats.isDirectory()) {		//	directory
 		if	( await getDirectory(request, response, handlers, config,
 							absolutePath, relativePath, stats,
-							acceptsJSON, methods) )	return;
+							acceptsJSON, methods) )	{
+			return;
+		} else {
+			stats = null;
+		}
 	}
 
 	const isSymLink = stats && stats.isSymbolicLink();
@@ -909,12 +991,8 @@ const execGET = async (request, response, session, config, absolutePath, relativ
 		absolutePath = await handlers.realpath(absolutePath);
 		stats = await handlers.lstat(absolutePath);
 	}
-
-
-	//
-	//	read contents here!!
-	//
-	if	( getTextContent(request, response, config, absolutePath, relativePath) ) {
+	//console.log({absolutePath});
+	if	( await getTextContent(request, response, config, absolutePath, relativePath) ) {
 		return;
 	}
 	await getNonTextContent(request, response, config, absolutePath, relativePath, stats,
@@ -989,69 +1067,136 @@ const readPostData = (req) => {
 	});
 }
 
-const authUser = (req, user, password) => {
+const authUser = (user, password) => {
 	let file;
 	//console.log({user});
-	return new Promise((done, fail) => {
-		try {
-			file = readFileSync(path.join(current, "/password.json"), 'utf-8');
-		} catch (e) {
-			file = undefined;
-		}
-		if	( !file )	{
-			done(null);
+	try {
+		file = readFileSync(path.join(current, "/password.json"), 'utf-8');
+	} catch (e) {
+		file = undefined;
+	}
+	if	( !file )	{
+		return	(null);
+	} else {
+		let users = JSON.parse(file);
+		let ent = users[user];
+		//console.log(users);
+		//console.log({ent});
+		if	( !ent )	{
+			return	(null);
 		} else {
-			let users = JSON.parse(file);
-			let ent = users[user];
-			//console.log(users);
-			//console.log({ent});
-			if	( !ent )	{
-				done(null);
+			if	(( password ) &&
+				 ( bcrypt.compareSync(password, ent.hash_password) ))	{
+				//console.log('auth ok')
+				return	(ent);
 			} else {
-				if	(( password ) &&
-					 ( bcrypt.compareSync(password, ent.hash_password) ))	{
-					//console.log('auth ok')
-					done(ent);
-				} else {
-					//console.log('auth fail');
-					done(null);
-				}
+				//console.log('auth fail');
+				return	(null);
 			}
 		}
-	});
+	}
+}
+const   passwd = (user, old_pass, new_pass) => {
+	let file;
+	//console.log('password', user, old_pass, new_pass);
+	try {
+		file = readFileSync(path.join(current, "/password.json"), 'utf-8');
+	} catch (e) {
+		file = undefined;
+	}
+	if	( !file )	{
+		return	false;
+	} else {
+		let users = JSON.parse(file);
+		let ent = users[user];
+		//console.log(users);
+		//console.log({ent});
+		if	( !ent )	{
+			return	false;
+		} else {
+			if	(( old_pass ) &&
+				 ( bcrypt.compareSync(old_pass, ent.hash_password) ))	{
+				ent.hash_password = bcrypt.hashSync(new_pass, SALT_ROUNDS);
+				users[user] = ent;
+				writeFileSync(path.join(current, "/password.json"),
+					JSON.stringify(users, ' ', 2));
+				return	true;
+			} else {
+				return	false;
+			}
+		}
+	}
+}
+
+const loadFeatureContent = (name, config, opts) => {
+	let content = oadContent(path.join(current, name), config, true, opts);
+	if	( !content )	{
+		content = loadContent(path.join('./libs', name), config, true, opts);
+	}
+	return	content;
+}
+
+const sendContent = (response, content) => {
+	response.statusCode = 200;
+	response.setHeader('Content-Type', 'text/html; charset=utf-8');
+	response.end(content);
 }
 
 const needLogin = async (request, response, config) => {
+	console.log(request.method, request.url);
 	if	( request.method === 'GET' )	{
 		if	( url.parse(request.url).pathname !== '/login.html' )	{
-			//console.log('redirect to login', request.url);
+			console.log('redirect to login', request.url);
 			redirectURL(response, `/login.html?redirect=${request.url}`, 301);
 		} else {
-			//console.log('redirect', request.url);
 			let {params} = pathParse(request.url);
-			let content = loadContent(path.join(current, '/login.ejs'), config, true, {
+			let content = loadFeatureContent('/login.ejs', config, {
 				params: `redirect=${params.redirect}`
 			});
-			if	( !content)	{
-				content = loadContent('./libs/login.ejs', config, true, {
-					params: `redirect=${params.redirect}`
-				});
-			}
-			response.statusCode = 200;
-			response.setHeader('Content-Type', 'text/html; charset=utf-8');
-			response.end(content);
+			sendContent(response, content);
 		}
 	} else {
 		let data = await readPostData(request);
-		//console.log({data});
-		let user = await authUser(request, data.user_name, data.password);
 		let {params} = pathParse(request.url);
-		//console.log('login', user, data, params);
+		console.log(request.url);
+
+		let user = authUser(data.user_name, data.password);
 		if	( user )	{
-			setSession(response, 24 * 3600 * 52, data.user_name);
+			//console.log('login', user, data, params);
+			if	( user )	{
+				setSession(response, 24 * 3600 * 52, data.user_name);
+			}
+			redirectURL(response, params.redirect, 301);
+		} else {
+			let content = loadFeatureContent('/login.ejs', config, {
+				params: `redirect=${params.redirect}`,
+				alert: 'user or/and password are invalid'
+			});
+			sendContent(response, content);
 		}
-		redirectURL(response, params.redirect, 301);
 	}
+}
+
+const checkPassword = async (request, response, config, user_name) => {
+	//console.log('checkPassword', request.url);
+	if	( url.parse(request.url).pathname === '/password.html' )	{
+		let content;
+		let opts;
+		if	( request.method === 'GET' )	{
+			opts = {};
+		} else {
+			let data = await readPostData(request);
+			if	( passwd(user_name, data.old_pass, data.new_pass) )	{
+				opts = { alert: 'password change success' };
+			} else {
+				opts = { alert: 'password not change' };
+			}
+		}
+		content = await loadFeatureContent('/password.ejs', config, opts);
+		sendContent(response, content);
+		return	true;
+	} else
+		return false;
 }
 
 const handler = async (request, response, config = {}, methods = {}) => {
@@ -1065,16 +1210,14 @@ const handler = async (request, response, config = {}, methods = {}) => {
 	if (request.headers.accept) {
 		acceptsJSON = request.headers.accept.includes('application/json');
 	}
-
-	//console.log(request.method, request.url);
-	//console.log('headers', request.headers);
-
-	console.log(config);
+	//console.log({config});
 	//console.log({session});
 	if	( config.authenticate )	{
 		if ( !session || !session.user_name )	{
 			await needLogin(request, response, config);
 			return;
+		} else {
+			if	( await checkPassword(request, response, config, session.user_name) )	return;
 		}
 	}
 	try {
@@ -1112,19 +1255,8 @@ const handler = async (request, response, config = {}, methods = {}) => {
 		return;
 	}
 */
-	let stats = null;
 
-	// It's extremely important that we're doing multiple stat calls. This one
-	// right here could technically be removed, but then the program
-	// would be slower. Because for directories, we always want to see if a related file
-	// exists and then (after that), fetch the directory itself if no
-	// related file was found. However (for files, of which most have extensions), we should
-	// always stat right away.
-	//
-	// When simulating a file system without directory indexes, calculating whether a
-	// directory exists requires loading all the file paths and then checking if
-	// one of them includes the path of the directory. As that's a very
-	// performance-expensive thing to do, we need to ensure it's not happening if not really necessary.
+	let stats = null;
 
 	if (path.extname(relativePath) !== '') {
 		try {
@@ -1220,6 +1352,7 @@ const start = (port, root, option) => {
 	option['redirects'] = redirect;
 	option['ignores'] = ignores;
 	//option['authenticate'] = true;
+	option['javascript'] = true;
 	//console.log({option});
 	thisConfig = option;
 
