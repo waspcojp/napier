@@ -1,6 +1,6 @@
 <aside class="main-sidebar sidebar-bg-dark sidebar-color-primary shadow">
 	<div class="brand-container">
-        <a href="" class="brand-link">
+        <a href="/" class="brand-link">
             <img src="public/logo.svg" alt="Logo" class="brand-image opacity-80 shadow">
         </a>
     </div>
