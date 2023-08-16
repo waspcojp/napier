@@ -660,7 +660,7 @@ const renderEJS = (absolutePath, config, opts) => {
 	}	
 }
 const renderJS = async (absolutePath, config, opts) => {
-	console.log('render JS', absolutePath, opts);
+	//console.log('render JS', absolutePath, opts);
 	try {
 		let renderer = require(absolutePath);
 		let ret;
@@ -962,7 +962,7 @@ const getNonTextContent = async (request, response, config, absolutePath, relati
 
 }
 const execGET = async (request, response, session, config, absolutePath, relativePath, rewrited, stats, acceptsJSON, handlers, methods) => {
-	console.log('execGET', {rewrited});
+	//console.log('execGET', {rewrited});
 	for ( let ignore of config.ignores )	{
 		if	( absolutePath.match(ignore) )
 			return handlers.sendError(absolutePath, response, acceptsJSON, current, handlers, config, {
