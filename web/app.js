@@ -44,7 +44,7 @@ const	makePath = (lang, file) => {
 	if	( orig_path.match(/\/$/))	{
 		orig_path = `${orig_path}index.html`;
 	}
-	console.log({orig_path});
+	//console.log({orig_path});
 	let file_path = applyRewrites(orig_path, option.rewrites);
 	if	( !file_path )	{
 		file_path = orig_path;
@@ -56,7 +56,7 @@ const	makePath = (lang, file) => {
 	});
 }
 const	getContent = (req, res) => {
-	console.log(req.headers['accept-language']);
+	//console.log(req.headers['accept-language']);
 	let params_path = req.params.path || '/';
 	let lang;
 	try {
@@ -65,11 +65,11 @@ const	getContent = (req, res) => {
 		lang = 'en-US';
 	}
 	let {file_path, orig_path} = makePath(lang, params_path);
-	console.log('file', lang, file_path);
+	//console.log('file', lang, file_path);
 	try	{
 		let	content;
-		console.log({file_path}, {orig_path});
-		content = loadContent(file_path, option, true, {
+		//console.log({file_path}, {orig_path});
+		content = loadContent(file_path, option, true, false, {
 			params: req.query,
 			pathname: orig_path,
 			lang: lang,

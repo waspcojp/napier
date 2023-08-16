@@ -508,7 +508,7 @@ const renderDirectory = async (current, acceptsJSON, handlers, methods, config, 
 	if	( acceptsJSON )	{
 		output = JSON.stringify(spec);
 	} else {
-		output = await loadContent('./libs/directory.ejs', {}, false, spec);
+		output = await loadContent('./libs/directory.ejs', {}, false, false, spec);
 	}
 	return {directory: output};
 };
@@ -634,7 +634,7 @@ const renderMarkdown = (absolutePath, config, toplevel, opts) => {
 		let source = readFileSync(absolutePath, 'utf-8');
 		let inner_html = markdown.render(source);
 		if	( toplevel )	{
-			return	loadContent('./libs/markdown.html', config, toplevel, opts);
+			return	loadContent('./libs/markdown.html', config, toplevel, false, opts);
 		} else {
 			return	(inner_html);
 		}
@@ -660,7 +660,7 @@ const renderEJS = (absolutePath, config, opts) => {
 	}	
 }
 const renderJS = async (absolutePath, config, opts) => {
-	//console.log('render JS', absolutePath, opts);
+	console.log('render JS', absolutePath, opts);
 	try {
 		let renderer = require(absolutePath);
 		let ret;
@@ -689,7 +689,7 @@ const renderJS = async (absolutePath, config, opts) => {
 			}
 			//console.log({templatePath});
 			//console.log('data', ret.data);
-			let content = loadContent(templatePath, config, true, ret.data);
+			let content = loadContent(templatePath, config, true, false, ret.data);
 			return	(content);
 		}
 	} catch(err)	{
@@ -758,7 +758,7 @@ const renderHTML = (thisPath,config, opts) => {
 						componentPath = path.join(path.dirname(thisPath), path.normalize(name));
 					}
 					if ( existsSync(componentPath) ) {
-						let ret = loadContent(componentPath, config, false, _opts);
+						let ret = loadContent(componentPath, config, false, false, _opts);
 						return	(ret);
 					} else {
 						console.log('component not found', componentPath);
@@ -769,6 +769,7 @@ const renderHTML = (thisPath,config, opts) => {
 				}
 			} catch(e) {
 				console.log(e);
+				console.log('opts', opts)
 				return	'';
 			}
 		});
@@ -822,9 +823,10 @@ const parseMacro = (s) => {
 	//console.log('token', token);
 	return	(token);
 }
-const loadContent = (thisPath, config, toplevel, opts) => {
+const loadContent = (thisPath, config, toplevel, rewrited, opts) => {
 	//console.log('load:', thisPath);
 	//console.log('opts:', opts);
+	//console.log({rewrited}, {toplevel}, {config});
 	let content;
 	if	( ( config ) && ( config.markdown ) && ( thisPath.match(/\.md/g) ) )	{
 		content = renderMarkdown(thisPath, config, toplevel, opts);
@@ -832,8 +834,9 @@ const loadContent = (thisPath, config, toplevel, opts) => {
 	if	( thisPath.match(/\.ejs/g) )	{
 		content = renderEJS(thisPath, config, opts);
 	} else
-	if	( ( config ) && ( config.javascript ) && ( thisPath.match(/run\.js/g) ) )	{
+	if	( ( config ) && ( config.javascript ) && ( thisPath.match(/\.js/g) && ( !toplevel || rewrited )) )	{
 		content = renderJS(thisPath, config, opts);
+		//console.log({content});
 	} else
 	if	( thisPath.match(/\.html/g) )	{
 		content = renderHTML(thisPath, config, opts);
@@ -881,12 +884,13 @@ const getDirectory = async (request, response, handlers, config, absolutePath, r
 
 }
 
-const getTextContent = async (request, response, config, absolutePath, relativePath) => {
+const getTextContent = async (request, response, session, config, rewrited, absolutePath, relativePath) => {
 	let params = pathParse(request.url).params;
-	let content = await loadContent(absolutePath, config, true, {
+	let content = await loadContent(absolutePath, config, true, rewrited, {
 		method: request.method,
 		params: params,
 		pathname: relativePath,
+		session: session,
 		current: current
 	});
 	//console.log('content', content);
@@ -957,7 +961,8 @@ const getNonTextContent = async (request, response, config, absolutePath, relati
 	stream.pipe(response);
 
 }
-const execGET = async (request, response, session, config, absolutePath, relativePath, stats, acceptsJSON, handlers, methods) => {
+const execGET = async (request, response, session, config, absolutePath, relativePath, rewrited, stats, acceptsJSON, handlers, methods) => {
+	console.log('execGET', {rewrited});
 	for ( let ignore of config.ignores )	{
 		if	( absolutePath.match(ignore) )
 			return handlers.sendError(absolutePath, response, acceptsJSON, current, handlers, config, {
@@ -992,7 +997,7 @@ const execGET = async (request, response, session, config, absolutePath, relativ
 		stats = await handlers.lstat(absolutePath);
 	}
 	//console.log({absolutePath});
-	if	( await getTextContent(request, response, config, absolutePath, relativePath) ) {
+	if	( await getTextContent(request, response, session, config, rewrited, absolutePath, relativePath) ) {
 		return;
 	}
 	await getNonTextContent(request, response, config, absolutePath, relativePath, stats,
@@ -1129,9 +1134,9 @@ const   passwd = (user, old_pass, new_pass) => {
 }
 
 const loadFeatureContent = (name, config, opts) => {
-	let content = oadContent(path.join(current, name), config, true, opts);
+	let content = loadContent(path.join(current, name), config, true, false, opts);
 	if	( !content )	{
-		content = loadContent(path.join('./libs', name), config, true, opts);
+		content = loadContent(path.join('./libs', name), config, true, false, opts);
 	}
 	return	content;
 }
@@ -1143,7 +1148,7 @@ const sendContent = (response, content) => {
 }
 
 const needLogin = async (request, response, config) => {
-	console.log(request.method, request.url);
+	//console.log(request.method, request.url);
 	if	( request.method === 'GET' )	{
 		if	( url.parse(request.url).pathname !== '/login.html' )	{
 			console.log('redirect to login', request.url);
@@ -1267,6 +1272,7 @@ const handler = async (request, response, config = {}, methods = {}) => {
 			}
 		}
 	}
+	let rewrited = false;
 	const rewrittenPath = applyRewrites(relativePath, config.rewrites);
 //	if (!stats && (cleanUrl || rewrittenPath)) {	元々のロジックでは、素のHTMLがない時だけrewriteが発動していた。テンプレート適用機能{{>}}のために潰す
 	if (cleanUrl || rewrittenPath) {
@@ -1274,6 +1280,7 @@ const handler = async (request, response, config = {}, methods = {}) => {
 			const related = await findRelated(current, relativePath, rewrittenPath, handlers.lstat);
 
 			if (related) {
+				rewrited = true;
 				({stats, absolutePath} = related);
 			}
 		} catch (err) {
@@ -1293,7 +1300,7 @@ const handler = async (request, response, config = {}, methods = {}) => {
 	}
 	switch	( request.method )	{
 	  case	'GET':
-		await execGET(request, response, session, config, absolutePath, relativePath, stats, acceptsJSON, handlers, methods);
+		await execGET(request, response, session, config, absolutePath, relativePath, rewrited, stats, acceptsJSON, handlers, methods);
 		break;
 	  default:
 		break;
@@ -1352,7 +1359,7 @@ const start = (port, root, option) => {
 	option['redirects'] = redirect;
 	option['ignores'] = ignores;
 	//option['authenticate'] = true;
-	option['javascript'] = true;
+	//option['javascript'] = true;
 	//console.log({option});
 	thisConfig = option;
 
