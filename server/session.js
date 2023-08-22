@@ -28,7 +28,7 @@ module.exports = class {
         this.user = user;
     }
     start(port, profile) {
-        console.log('start', profile);
+        //console.log('start', profile);
         this.localPort = port;
         if  ( profile.name == 'default' )   {
         } else
@@ -62,7 +62,7 @@ module.exports = class {
         this.profile = profile.dataValues;
         this.send = 0;
         this.recv = 0;
-        console.log('profile', this.profile);
+        //console.log('profile', this.profile);
     }
     connect(channel)    {
         this.tunnel.connect(channel);
