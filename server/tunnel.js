@@ -96,7 +96,8 @@ module.exports = class {
                     do_start(this.proxy, session, port, profile, body);
                     session.sendReturn(message_id, true, 'OK');
                 })
-                .catch(() => {
+                .catch((e) => {
+                    console.log(e);
                     session.sendControl(message_id, {
                         status: 'NG',
                         message_id: body.message_id,

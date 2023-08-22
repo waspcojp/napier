@@ -28,6 +28,7 @@ module.exports = class {
         this.user = user;
     }
     start(port, profile) {
+        console.log('start', profile);
         this.localPort = port;
         if  ( profile.name == 'default' )   {
         } else
@@ -45,14 +46,23 @@ module.exports = class {
                     fs.writeFileSync(fileName, profile.ca, 'utf-8');
                     profile.ssl.ca = fileName;
                 }
+            } else
+            if  ( profile.lets )    {
+                profile.ssl = {
+                    letsencrypt: {
+                        email: profile.user.mail,
+                        production: false
+                    }
+                }
             } else {
                 profile.ssl = true;
             }
         }
-        //console.log('profile', profile);
-        this.profile = profile;
+        //console.log('profile', profile.ssl);
+        this.profile = profile.dataValues;
         this.send = 0;
         this.recv = 0;
+        console.log('profile', this.profile);
     }
     connect(channel)    {
         this.tunnel.connect(channel);

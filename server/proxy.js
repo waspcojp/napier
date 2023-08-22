@@ -15,6 +15,10 @@ if  ( HTTP_PORT )   {
 }
 if  ( HTTPS_PORT )  {
     options['secure'] = true;
+    options['letsencrypt'] = {
+            path: './certs',
+            port: 9999
+        };
     options['ssl'] = {
         port: HTTPS_PORT,
         key:  `./certs/${MY_DOMAIN}.pem`,

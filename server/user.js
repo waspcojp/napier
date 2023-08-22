@@ -33,7 +33,13 @@ const   getProfile = (user, profile_name) => {
                         userId: user.id,
                         name: profile_name
                     }
-                }
+                },
+                include: [
+                    {
+                        model:models.User,
+                        as: 'user'
+                    }
+                ]
             })
         }
     } else {

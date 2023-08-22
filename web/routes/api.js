@@ -227,6 +227,7 @@ router.put('/profile', is_authenticated, (req, res, next) => {
         profile.name = body.name;
         profile.path = body.path;
         profile.ssl = body.ssl;
+        profile.lets = body.lets;
         if  (( body.key ) &&
              ( body.key.match(/^---/) ))    {
             profile.key = body.key;
@@ -257,6 +258,7 @@ router.post('/profile', is_authenticated, (req, res, next) => {
             path: body.path,
             userId: user.id,
             ssl: body.ssl,
+            lets: body.lets,
             key: body.key,
             cert: body.cert,
             ca: body.ca

@@ -39,6 +39,16 @@
                         </div>
                     </div>
                     <div class="row mb-3">
+                        <label for="lets" class="col-sm-2 col-form-label">Let's Encrypt</label>
+                        <div class="col-sm-10">
+                            <input type="checkbox" class="form-checkbox-input" bind:checked={profile.lets} id="lets">
+                            <label class="form-checkbox-label" for="lets">
+                                Use Let's Encrypt
+                            </label>
+                        </div>
+                    </div>
+                    {#if ( !profile.lets)}
+                    <div class="row mb-3">
                         <label for="key" class="col-sm-2 col-form-label">Private key</label>
                         <div class="col-sm-10">
                             <textarea class="form-control monospace" bind:value={profile.key} rows="5"></textarea>
@@ -56,6 +66,7 @@
                             <textarea class="form-control monospace" bind:value={profile.ca} rows="5"></textarea>
                         </div>
                     </div>
+                    {/if}
                     {/if}
                 </div>
             </div>
@@ -111,6 +122,9 @@ const save = (event) => {
     }
     if  ( !profile.ssl )    {
         profile.ssl = false;
+    }
+    if  ( !profile.lets )    {
+        profile.lets = false;
     }
 	api.updateProfile(profile).then(() => {
 		close_();

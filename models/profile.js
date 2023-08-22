@@ -12,7 +12,8 @@ module.exports = (sequelize, DataTypes) => {
     	static associate(models) {
 			this.belongsTo(models.User, {
 				foreignKey: 'userId',
-				onDelete: 'CASCADE'
+				onDelete: 'CASCADE',
+				as: 'user'
 			});
     	}
   	}
@@ -23,7 +24,8 @@ module.exports = (sequelize, DataTypes) => {
 		ssl: DataTypes.BOOLEAN,
 		key: DataTypes.TEXT,
 		cert: DataTypes.TEXT,
-		ca: DataTypes.TEXT
+		ca: DataTypes.TEXT,
+		lets: DataTypes.BOOLEAN
   	}, {
 	    sequelize,
 	    modelName: 'Profile',
