@@ -17,7 +17,7 @@ if  ( HTTPS_PORT )  {
     options['secure'] = true;
     options['letsencrypt'] = {
             path: './certs',
-            port: 9999
+            port: ( LOCAL_PORT_RANGE[0] - 1)
         };
     options['ssl'] = {
         port: HTTPS_PORT,

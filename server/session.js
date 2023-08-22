@@ -59,7 +59,7 @@ module.exports = class {
             }
         }
         //console.log('profile', profile.ssl);
-        this.profile = profile.dataValues;
+        this.profile = profile;
         this.send = 0;
         this.recv = 0;
         //console.log('profile', this.profile);
