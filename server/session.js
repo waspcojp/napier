@@ -33,6 +33,14 @@ module.exports = class {
         if  ( profile.name == 'default' )   {
         } else
         if  ( profile.ssl ) {
+            if  ( profile.lets )    {
+                profile.ssl = {
+                    letsencrypt: {
+                        email: profile.user.mail,
+                        production: true
+                    }
+                }
+            } else
             if  ( profile.key ) {
                 profile.ssl = {};
                 let fileName = `${global.env.cert_path}/${profile.id}-key.pem`;
@@ -45,14 +53,6 @@ module.exports = class {
                     fileName = `${global.env.cert_path}/${profile.id}-ca.pem`;
                     fs.writeFileSync(fileName, profile.ca, 'utf-8');
                     profile.ssl.ca = fileName;
-                }
-            } else
-            if  ( profile.lets )    {
-                profile.ssl = {
-                    letsencrypt: {
-                        email: profile.user.mail,
-                        production: true
-                    }
                 }
             } else {
                 profile.ssl = true;
