@@ -41,7 +41,7 @@ Let's Encryptの自動証明書更新機能を使うためには、`npm update`�
 
 [[ERR_INVALID_ARG_TYPE]: The \"data\" argument must be of type string or an instance of Buffer, TypedArray, or DataView #259](https://github.com/OptimalBits/redbird/issues/259)
 
-を見て下さい。`node_modules/le-store-certbot/index.js`に、以下のパッチを当てます。
+を見て下さい。`node_modules/le-store-certbot/index.js`に、以下のように修正します。
 
 ```
 /*   ............ around line 288 ................. */
