@@ -51,7 +51,7 @@ module.exports = class {
                 profile.ssl = {
                     letsencrypt: {
                         email: profile.user.mail,
-                        production: false
+                        production: true
                     }
                 }
             } else {
