@@ -3,6 +3,10 @@ const {HTTP_PORT, HTTPS_PORT, WS_PORT, LOCAL_PORT_RANGE, APPL_PORT, MY_DOMAIN, c
 const Tunnel = require('./tunnel');
 let staticRoute;
 
+/*
+* see https://github.com/OptimalBits/redbird/issues/259
+*/
+
 try {
     staticRoute = require('../config/static');
 } catch(e) {
