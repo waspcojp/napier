@@ -1,5 +1,5 @@
 const Redbird = require('redbird');
-const {HTTP_PORT, HTTPS_PORT, WS_PORT, LOCAL_PORT_RANGE, APPL_PORT, MY_DOMAIN} = require('../config/server.js');
+const {HTTP_PORT, HTTPS_PORT, WS_PORT, LOCAL_PORT_RANGE, APPL_PORT, MY_DOMAIN, cert_path} = require('../config/server.js');
 const Tunnel = require('./tunnel');
 let staticRoute;
 
@@ -16,7 +16,7 @@ if  ( HTTP_PORT )   {
 if  ( HTTPS_PORT )  {
     options['secure'] = true;
     options['letsencrypt'] = {
-            path: __dirname + '/../certs',
+            path: cert_path,
             port: ( LOCAL_PORT_RANGE[0] - 1)
         };
     options['ssl'] = {
@@ -39,8 +39,8 @@ if  (( MY_DOMAIN.match(/\.local$/) )||
 } else {
     proxy.register(`www.${MY_DOMAIN}`, `localhost:${APPL_PORT}`, HTTPS_PORT ? {
         ssl: {                              //  force https
-            key:  `./certs/${MY_DOMAIN}.pem`,
-            cert: `./certs/${MY_DOMAIN}-cert.pem`
+            key:  `${cert_path}/${MY_DOMAIN}.pem`,
+            cert: `${cert_path}/${MY_DOMAIN}-cert.pem`
         }
     } : undefined);
 }
