@@ -35,6 +35,32 @@ $ git clone https://github.com/waspcojp/napier.git
 $ npm update
 ```
 
+Let's Encryptの自動証明書更新機能を使うためには、`npm update`の後、`node_modules/le-store-certbot`にパッチを当てる必要があります。
+
+詳しいことは、`redbird`のissueである、
+
+[[ERR_INVALID_ARG_TYPE]: The \"data\" argument must be of type string or an instance of Buffer, TypedArray, or DataView #259](https://github.com/OptimalBits/redbird/issues/259)
+
+を見て下さい。`node_modules/le-store-certbot/index.js`に、以下のパッチを当てます。
+
+```
+/*   ............ around line 288 ................. */
+var privkeyArchive = path.join(archiveDir, 'privkey' + checkpoints + '.pem'); 
+//var bundleArchive = path.join(archiveDir, 'bundle' + checkpoints + '.pem'); //no longer used
+
+return mkdirpAsync(archiveDir).then(function () { 
+ return PromiseA.all([ 
+   sfs.writeFileAsync(certArchive, pems.cert, 'ascii') 
+ , sfs.writeFileAsync(chainArchive, pems.chain, 'ascii') 
+ , sfs.writeFileAsync(fullchainArchive, [ pems.cert, pems.chain ].join('\n'), 'ascii') 
+ , sfs.writeFileAsync(privkeyArchive, pems.privkey, 'ascii') 
+//, sfs.writeFileAsync(bundleArchive, pems.bundle, 'ascii') // <-- comment this line
+ ]); 
+}).then(function () { 
+ return mkdirpAsync(liveDir); 
+}).then(function () { 
+```
+
 ### 設定
 
 #### サーバ
