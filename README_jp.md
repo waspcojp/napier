@@ -10,9 +10,11 @@ Napierは転送用のコネクションにweb socketを使った逆プロキシ�
 
 このため、ネットワーク的にNapierが見えてさえいれば、プロキシ先を置くことができます。
 
+Napierは現在[Napier-NET](https://www.napier-net.com)でサービスが公開されていますが、セルフホストすることも可能です。Napier-NETだけではポリシー的に多様なニーズには応え切れないので、多くの人がNapierのサービスが行われることを期待します。
+
 ## 仕組み
 
-Napier serverは、起動するとweb用のポート(port 80, port 443)と転送用のポート(port 8000)を開きます。
+Napier serverは、起動するとweb用のポート(port 80, port 443)と転送用のポート(port 8000 変更可能)を開きます。
 
 web用ポートに接続されたURLのパス部が`/manage`の場合は設定用のウェブUIを送信します。
 
@@ -22,7 +24,7 @@ web用ポートに接続されたURLのパス部が`/manage`の場合は設定�
 
 プロキシのクライアントはローカル接続のためのポートを開き、ローカルにあるウェブサーバに接続を仲介します。
 
-プロキシのクライアントにはウェブサーバが組み込まれており、有効にすると指定したディレトリ以下をプロキシ経由で公開することが可能になっています。
+プロキシのクライアントにはウェブサーバが組み込まれており、**有効にすると**指定したディレトリ以下をプロキシ経由で公開することが可能になっています。
 
 ## クイックスタート
 
@@ -61,6 +63,8 @@ return mkdirpAsync(archiveDir).then(function () {
 }).then(function () { 
 ```
 
+2箇所コメントアウトするだけです。
+
 ### 設定
 
 #### サーバ
@@ -77,21 +81,25 @@ $ sudo npm run server
 
 ```javascript
 module.exports = {
-    HTTP_PORT: 8000,
-    HTTPS_PORT: 8443,
-    WS_PORT: 8001,
-    LOCAL_PORT_RANGE: [9000, 9100],
-    APPL_PORT: 3331,
-    MY_DOMAIN: 'shibuya.local',
-    home: process.env.HOME,
-    session_ttl: 3600 * 24 * 7,
-    session_path: `${process.env.PWD}/sessions`,
-    cert_path: `${process.env.PWD}/certs`,
-    content_path: `${process.env.PWD}/page`
+	HTTP_PORT: 800,
+	HTTPS_PORT: 443,
+	WS_PORT: 8001,
+	LOCAL_PORT_RANGE: [9000, 9100],
+	APPL_PORT: 3010,
+	MY_DOMAIN: 'napier-net.com',
+	MY_HOST: 'www.napier-net.com',
+	home: process.env.HOME,
+	session_ttl: 3600 * 24 * 7,
+	session_path: `${process.env.PWD}/sessions`,
+	cert_path: `${process.env.PWD}/certs`,
+	content_path: `${process.env.PWD}/../napier-web`,
+	makeDefaultPath: (domain, user) => {
+		return  `${user.name}.${domain}`;
+	}
 };
 ```
 
-このうち、必ず修正しなければならないのは、`MY_DOMAIN`だけです。他は特に不都合がなければそのままで構いません。
+このうち、必ず修正しなければならないのは、`MY_DOMAIN`と`MY_HOST`です。他は特に不都合がなければそのままで構いません。
 
 httpsを使うためには、証明書が必要です。ローカルで試すだけならオレオレ証明書(自己署名証明書)でも構いませんが、グローバルに置くためには、正しく取得する必要があります。デフォルトの設定の場合は、`./cert`直下に証明書と秘密鍵を起きます。この辺は「クイックスタート」にしては厄介なので、後程説明します。
 
@@ -132,18 +140,21 @@ Arguments:
 Options:
   --config <config filename>         config file
   --user <user>                      user name
-  --password <pass>                  password
-  --host <host>                      tunnel host
-  --port <port>                      tunnel port
+  --password <password>              password
+  --url <URL>                        server URL
   --local-port <localPort>           local port
   --re-connect                       re-connect server
   --web-server                       start web server
   --server-config <config filename>  web server config file
   --document-root <path>             web server document root
   --index                            list index
+  --markdown                         markdown SSR
+  --javascript                       server side Javascript execution
+  --authenticate                     password authentication
+  -h, --help                         display help for command
 ```
 
-このうち、必ず指定するものは、`--user`, `--password`, `--host`です。
+このうち、必ず指定するものは、`--user`, `--password`, `--url`です。
 
 コマンドラインで指定するオプションは、
 
@@ -164,20 +175,18 @@ Options:
 コマンドラインの最後は「プロファイル」の指定となっていますが、これについては後程説明します。指定しない場合はデフォルトとなりますが、この時にプロキシが起動されるURLは、
 
 ```
-(http|https)://<サーバのURL>/<ユーザ名>
+(http|https)://<ユーザ名>.<HOST_NAME>/
 ```
 
-となります。
+となります(この命名ルールはカスタマイズ可能です)
 
 `--web-server`を指定すると、組み込みウェブサーバが起動します。`--document-root`で指定したディレクトリをdocument rootとするウェブサーバが起動され、プロキシ経由で外からアクセス可能になります。
 
 ### デモサイト
 
-[デモサイト](https://www.napier-net.com)を作りましたので、サーバの設定なしで試してみることが可能です。
+[Napier-NET](https://www.napier-net.com)にてクライアントを試してみることができます。
 
 サイトにアクセスしてユーザ登録を行った後にクライアント起動すると試すことが可能です。
-
-なお、このURLのサイトは将来的には正式なサービスとしてリリースする予定ですが、その時にはユーザ情報は引き継がれませんので、注意して下さい。
 
 ## 解説
 
@@ -195,4 +204,111 @@ Options:
 
   秘密鍵です。
 
-なお、実行時に証明書を含んだrouteがstartされた場合には、`数字-cert.pem`, `数字.pem`という名前のの証明書ペアがこのディレクトリに置かれます。これらはstartする度にデータベースから実体を作るので、邪魔だと思ったら消してしまっても問題ありません。
+なお、実行時に証明書を含んだrouteがstartされた場合には、`数字-cert.pem`, `数字.pem`という名前のの証明書ペアがこのディレクトリに置かれます。これらはstartする度にデータベースから実体を作るので、邪魔だと思ったら消してしまっても問題ありません(start時に必要なら作られます)。
+
+### `--config`で指定するファイルのの内容について
+
+`--config`で指定するファイルに起動パラメータを入れておくことが出来ます。
+
+このファイルはCommon JSのモジュールの形式となっています。
+
+参考用に同根している、`config/server-sample.js`の内容を以下に示します。
+
+```
+module.exports = {
+	HTTP_PORT: 80,
+	HTTPS_PORT: 443,
+	WS_PORT: 8001,
+	LOCAL_PORT_RANGE: [9000, 9100],
+	APPL_PORT: 3010,
+	MY_DOMAIN: 'napier-net.com',
+	MY_HOST: 'www.napier-net.com',
+	home: process.env.HOME,
+	session_ttl: 3600 * 24 * 7,
+	session_path: `${process.env.PWD}/sessions`,
+	cert_path: `${process.env.PWD}/certs`,
+	content_path: `${process.env.PWD}/../napier-web`,
+	makeDefaultPath: (domain, user) => {
+		return  `${user.name}.${domain}`;
+	}
+};
+```
+
+それぞれのパラメータについて、以下に説明します。
+
+<dl>
+	<dt>HTTP_PORT</dt>
+  <dd>
+    <p>HTTPで使うポート番号を指定します。</p>
+    <p>指定しない場合はHTTPを使いません。</p>
+    <p>任意のポート番号を指定できますが、ローカルで試してみる以外の理由で<code>80</code>以外を指定する必要はないはずです。</p>
+  </dd>
+	<dt>HTTPS_PORT</dt>
+  <dd>
+    <p>HTTPSで使うポート番号を指定します。</p>
+    <p>指定しない場合はHTTPSを使いません。</p>
+    <p>任意のポート番号を指定できますが、ローカルで試してみる以外の理由で<code>443</code>以外を指定する必要はないはずです。</p>
+  </dd>
+	<dt>WS_PORT</dt>
+  <dd>
+    <p>プロキシクライアントの接続するトンネル用web socketのポート番号を指定します。</p>
+    <p>任意のポート番号が指定できます。</p>
+  </dd>
+	<dt>LOCAL_PORT_RANGE</dt>
+  <dd>
+    <p>プロキシクライアントのトンネルとプロキシを接続するために使われるポート範囲を指定します。</p>
+    <p>2要素の<code>Array</code>です。最初の要素が下限、後の要素が上限です。この範囲のポート番号が使用されます。</p>
+    <p>このポートは新しいプロキシ先毎に使われるので、この数が同時に<code>start</code>できるプロキシ数となります。
+    </p>
+    <p>番号自体には特に意味はないので、他で使っているポートと衝突しない範囲を任意に指定します。</p>
+  </code>
+  <dt>APPL_PORT</dt>
+  <dd>
+    <p><code>/manage</code>以下のウェブサービスが起動されるポート番号です。</p>
+    <p>これ自体は何であってもアプリケーションの動作には関係がありませんが、他のアプリケーションで使っているポートと衝突する場合には他の番号を指定して下さい。
+    </p>
+  </dd>
+	<dt>MY_DOMAIN</dt>
+  <dd>
+    <p>Napierサービスを運用するドメイン名です。</p>
+    <p>どのようなドメインでも構いませんが、利用者にサブドメインを払い出すタイプの運用にする場合は、他のウェブサービスで使っていない、Napierサービス専用のドメインである方が都合が良いことが多いです。</p>
+  </dd>
+  <dt>MY_HOST</dt>
+  <dd>
+    <p>Napierサービスを運用するサーバのホスト名です。</p>
+    <p>利用者にサブドメインを払い出す処理に使われます。</p>
+  </dd>
+	<dt>cert_path</dt>
+  <dd>
+    <p>証明書の置かれているフォルダのパス名を指定します。</p>
+    <p>指定されていない場合はHTTPSでの待機が出来ません。また、トンネルも平文のweb socketとなります。</p>
+    <p>通常はサンプルにある<code>`${process.env.PWD}/certs`</code>で問題ないはずです。</p>
+  </dd>
+  <dt>content_path</dt>
+  <dd>
+    <p><code>MY_HOST</code>をアクセスした時に表示されるコンテンツがあるフォルダを指定します。</p>
+    <p>Napierの動作とは直接関係はありませんが、説明等のコンテンツは用意しておいた方が良いでしょう。</p>
+  </dd>
+	<dt>session_path</dt>
+  <dd>
+    <p><code>/manage/</code>のセション情報を保存するフォルダです。</p>
+  </dd>
+	<dt>session_ttl</dt>
+  <dd>
+    <p>セション情報の生存期間を設定します(秒単位)。</p>
+    <p>通常はサンプルのままで問題ないはずです。</p>
+  </dd>
+	<dt>home</dt>
+  <dd>
+    <p>プロセスが実行されるホームディレクトリを指定します。</p>
+    <p>通常はサンプルのままで問題ないはずです。と言うか、サンプル以外にして問題なく動くかどうかを確認していません。
+    </p>
+  </dd>
+  <dt>makeDefaultPath</dt>
+  <dd>
+    <p>ユーザのデフォルトプロファイルのルーティングパス名を生成する関数を定義します。</p>
+    <p>通常はサンプルのままで問題がないはずなので、そのままにしておいて下さい。この場合はサブドメインを払い出す形式になります。
+    </p>
+    <p>他の払い出しにしたい場合は、ソースコードを見て考えて下さい。</p>
+  </dd>
+</dl>
