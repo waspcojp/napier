@@ -77,6 +77,12 @@ $ sudo npm run server
 
 サーバは起動時に`config/server.js`を読み込みます。
 
+なお、この例ではNapierを置いているフォルダを`chown`しています。これは、`npm`の仕様によりポート番号が1024以下のポートを開く場合、フォルダのオーナにsudoしてから実行する(一種の`suexec`)という仕様によるためです。詳しくは、
+
+[Macos Big Sur port 80 permission denied with root](https://apple.stackexchange.com/questions/413257/macos-big-sur-port-80-permission-denied-with-root)
+
+の会話を見て下さい。
+
 まずは、`config/server-sample.js`を`config/server.js`として読み込むように`ln -s`するか`mv`して下さい。
 
 ```javascript

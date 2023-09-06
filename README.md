@@ -76,6 +76,10 @@ $ sudo npm run server
 
 The server loads at startup config/server.js.
 
+In addition, in this example, the folder where Napier is placed is `chown`. This is because according to the `npm` specifications, when opening a port with a port number below 1024, it is executed after sudoing to the folder owner (a kind of `suexec`). For more information, Please see the conversation.
+
+[Macos Big Sur port 80 permission denied with root](https://apple.stackexchange.com/questions/413257/macos-big-sur-port-80-permission-denied-with-root)
+
 First of all , please try `config/server-sample.js` to `config/server.js`, using `ln -s` or `mv`.
 
 ```javascript
